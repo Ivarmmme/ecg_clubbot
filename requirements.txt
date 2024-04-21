@@ -1,4 +1,4 @@
 pyrogram>=1.2.0
-tgcrypto 
+tgcrypto>=1.2.0 
 
 
