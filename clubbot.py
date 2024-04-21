@@ -1,6 +1,6 @@
 import json
 import os
-from telegram import Update 
+from telegram import Update, ParseMode
 from telegram.ext import Updater, CommandHandler, CallbackContext
 
 # File path to store team members data
@@ -12,7 +12,7 @@ try:
         team_members = json.load(f)
 except FileNotFoundError:
     team_members = {
-        'team1': {'leader_id': '6369933143', 'members': [], 'extra_name': '⚗️ Heisenberg club🧪'},
+        'team1': {'leader_id': '6369933143', 'members': [], 'extra_name': '⚗️ Heisenberg 🧪'},
         'team2': {'leader_id': '7196174452', 'members': [], 'extra_name': '🍌Banana cult 🍌'},
         'team3': {'leader_id': '5449676227', 'members': [], 'extra_name': '🦦 Otter club 🦦'},
         'team4': {'leader_id': '5821282564', 'members': [], 'extra_name': '💰 The Billionaire Club 💰'}
@@ -172,3 +172,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+        
