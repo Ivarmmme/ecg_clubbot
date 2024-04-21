@@ -1,6 +1,6 @@
 import json
 import os
-from telegram import Update, ParseMode
+from telegram import Update, 
 from telegram.ext import Updater, CommandHandler, CallbackContext
 
 # File path to store team members data
