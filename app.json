@@ -1,9 +1,17 @@
 {
   "name": "ecg_clubbot",
-  "description": "ECG Club Bot .",
+  "description": "ECG Club Bot.",
   "env": {
     "BOT_TOKEN": {
       "description": "Your bot token, as a string.",
+      "value": ""
+    },
+    "API_ID": {
+      "description": "Your API ID, as a string.",
+      "value": ""
+    },
+    "API_HASH": {
+      "description": "Your API hash, as a string.",
       "value": ""
     }
   },
