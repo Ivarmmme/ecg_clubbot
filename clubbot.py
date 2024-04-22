@@ -137,6 +137,7 @@ async def team_list(update: Update, context: ContextTypes.DEFAULT_TYPE):
         response += "\n".join(member_mentions) if member_mentions else "No members."
         
         await update.message.reply_text(response, parse_mode=ParseMode.MARKDOWN)
+        
 def main():
     # Get the bot token from an environment variable
     bot_token = os.environ.get("BOT_TOKEN")  # Replace with your actual environment variable name
