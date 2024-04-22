@@ -117,26 +117,29 @@ async def remove_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # Function to list the members of a team
 async def team_list(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    team_name = context.args[0] if context.args else update.message.text[1:]
-    if team_name in team_members:
-        team_info = team_members[team_name]
-        leader_id = team_info['leader_id']
-        leader = (await context.bot.get_chat_member(update.effective_chat.id, leader_id)).user
-        leader_name = f"{leader.first_name} {leader.last_name if leader.last_name else ''}".strip()
-        leader_mention = f"[{leader_name}](tg://user?id={leader_id})"
-        
-        extra_name = team_info.get('extra_name', '')
-        
-        members = team_info['members']
-        member_mentions = [
-            f"[{(await context.bot.get_chat_member(update.effective_chat.id, member)).user.first_name} {(await context.bot.get_chat_member(update.effective_chat.id, member)).user.last_name if (await context.bot.get_chat_member(update.effective_chat.id, member)).user.last_name else ''}](tg://user?id={member})".strip() 
-            for member in members
-        ]
-        
-        response = f"| {extra_name} |:\nLeader: {leader_mention}\nMembers:\n"
-        response += "\n".join(member_mentions) if member_mentions else "No members."
-        
-        await update.message.reply_text(response, parse_mode=ParseMode.MARKDOWN)
+    try:
+        team_name = context.args[0] if context.args else update.message.text[1:]
+        if team_name in team_members:
+            team_info = team_members[team_name]
+            leader_id = team_info['leader_id']
+            leader = (await context.bot.get_chat_member(update.effective_chat.id, leader_id)).user
+            leader_name = f"{leader.first_name} {leader.last_name if leader.last_name else ''}".strip()
+            leader_mention = f"[{leader_name}](tg://user?id={leader_id})"
+            
+            extra_name = team_info.get('extra_name', '')
+            
+            members = team_info['members']
+            member_mentions = [
+                f"[{(await context.bot.get_chat_member(update.effective_chat.id, member)).user.first_name} {(await context.bot.get_chat_member(update.effective_chat.id, member)).user.last_name if (await context.bot.get_chat_member(update.effective_chat.id, member)).user.last_name else ''}](tg://user?id={member})".strip() 
+                for member in members
+            ]
+            
+            response = f"| {extra_name} |:\nLeader: {leader_mention}\nMembers:\n"
+            response += "\n".join(member_mentions) if member_mentions else "No members."
+            
+            await update.message.reply_text(response, parse_mode=ParseMode.MARKDOWN)
+    except BadRequest as e:
+        print(f"Error: {e}")
         
 def main():
     # Get the bot token from an environment variable
