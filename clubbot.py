@@ -15,7 +15,7 @@ try:
 except FileNotFoundError:
     team_members = {
         'team1': {'leader_id': '6369933143', 'members': [], 'extra_name': '⚗️ Heisenberg 🧪'},
-        'team2': {'leader_id': '7023056247', 'members': [], 'extra_name': '🍌Banana cult 🍌'},
+        'team2': {'leader_id': '7196174452', 'members': [], 'extra_name': '🍌Banana cult 🍌'},
         'team3': {'leader_id': '5449676227', 'members': [], 'extra_name': '🦦 Otter club 🦦'},
         'team4': {'leader_id': '5821282564', 'members': [], 'extra_name': '💰 The Billionaire Club 💰'}
     }
