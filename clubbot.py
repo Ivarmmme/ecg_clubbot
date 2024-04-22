@@ -27,7 +27,6 @@ def save_data():
 
 # Function to add a member to a team
 async def add_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    async def add_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = str(update.effective_user.id)
     text = update.message.text.split()
     if len(text) != 2:
