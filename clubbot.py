@@ -122,10 +122,12 @@ async def team_list(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if team_name in team_members:
             team_info = team_members[team_name]
             leader_id = team_info['leader_id']
+            leader_mention = None
             leader = await context.bot.get_chat_member(update.effective_chat.id, leader_id)
             leader = leader.user
-            leader_name = f"{leader.first_name} {leader.last_name if leader.last_name else ''}".strip()
-            leader_mention = f"[{leader_name}](tg://user?id={leader_id})"
+            if leader:
+                leader_name = f"{leader.first_name} {leader.last_name if leader.last_name else ''}".strip()
+                leader_mention = f"[{leader_name}](tg://user?id={leader_id})"
             
             extra_name = team_info.get('extra_name', '')
             
