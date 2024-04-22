@@ -120,22 +120,26 @@ async def team_list(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if team_name in team_members:
         team_info = team_members[team_name]
         leader_id = team_info['leader_id']
-        leader = context.bot.get_chat_member(update.effective_chat.id, leader_id).user
-        leader_name = f"{leader.first_name} {leader.last_name if leader.last_name else ''}".strip()
-        leader_mention = f"[{leader_name}](tg://user?id={leader_id})"
-        
+        leader = await context.bot.get_chat_member(update.effective_chat.id, leader_id)
+        leader_name = f"{leader.user.first_name} {leader.user.last_name if leader.user.last_name else ''}".strip()
+        leader_mention = f"{leader_name}"
+
         extra_name = team_info.get('extra_name', '')
-        
+
         members = team_info['members']
-        member_mentions = [
-            f"[{context.bot.get_chat_member(update.effective_chat.id, member).user.first_name} {context.bot.get_chat_member(update.effective_chat.id, member).user.last_name if context.bot.get_chat_member(update.effective_chat.id, member).user.last_name else ''}](tg://user?id={member})".strip() 
+        member_mentions = 
+            f"[{await context.bot.get_chat_member(update.effective_chat.id, member).user.first_name} {await context.bot.get_chat_member(update.effective_chat.id, member).user.last_name if await context.bot.get_chat_member(update.effective_chat.id, member).user.last_name else ''}"
             for member in members
         ]
-        
+
         response = f"| {extra_name} |:\nLeader: {leader_mention}\nMembers:\n"
         response += "\n".join(member_mentions) if member_mentions else "No members."
-        
-        await update.message.reply_text(response, parse_mode=ParseMode.MARKDOWN)
+
+        if update.message:
+            update.message.reply_text(response, parse_mode=ParseMode.MARKDOWN)
+    else:
+        if update.message:
+            update.message.reply_text(f"Team '{team_name}' not found.")
 
 def main():
     # Get the bot token from an environment variable
