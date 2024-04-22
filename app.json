@@ -1,12 +1,12 @@
 {
-  "name": "ecg_clubbot",
-  "description": "ECG Club Bot.",
+  "name": "Club bot",
+  "description": "A Telegram bot for managing teams.",
   "env": {
     "BOT_TOKEN": {
       "description": "Your bot token, as a string.",
       "value": ""
-    },
-    
+    }
+  },
   "buildpacks": [
     {
       "url": "heroku/python"
