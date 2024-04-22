@@ -6,15 +6,7 @@
       "description": "Your bot token, as a string.",
       "value": ""
     },
-    "API_ID": {
-      "description": "Your API ID, as a string.",
-      "value": ""
-    },
-    "API_HASH": {
-      "description": "Your API hash, as a string.",
-      "value": ""
-    }
-  },
+    
   "buildpacks": [
     {
       "url": "heroku/python"
