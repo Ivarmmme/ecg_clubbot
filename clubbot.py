@@ -14,9 +14,9 @@ try:
         team_members = json.load(f)
 except FileNotFoundError:
     team_members = {
-        'team1': {'leader_id': '6369933143', 'members': [], 'extra_name': '⚗️ Heisenberg 🧪'},
-        'team2': {'leader_id': '7196174452', 'members': [], 'extra_name': '🍌Banana cult 🍌'},
-        'team3': {'leader_id': '5449676227', 'members': [], 'extra_name': '🦦 Otter club 🦦'},
+        'team1': {'leader_id': '6369933143', 'members': [], 'extra_name': '👁️⃤ Goated Club🐐'},
+        'team2': {'leader_id': '7196174452', 'members': [], 'extra_name': '🪬 Banana cult 🌵'},
+        'team3': {'leader_id': '5449676227', 'members': [], 'extra_name': '🦦 Otters club 🦦'},
         'team4': {'leader_id': '5821282564', 'members': [], 'extra_name': '💰 The Billionaire Club 💰'}
     }
 
@@ -122,7 +122,8 @@ async def team_list(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if team_name in team_members:
             team_info = team_members[team_name]
             leader_id = team_info['leader_id']
-            leader = (await context.bot.get_chat_member(update.effective_chat.id, leader_id)).user
+            leader = await context.bot.get_chat_member(update.effective_chat.id, leader_id)
+            leader = leader.user
             leader_name = f"{leader.first_name} {leader.last_name if leader.last_name else ''}".strip()
             leader_mention = f"[{leader_name}](tg://user?id={leader_id})"
             
@@ -130,12 +131,18 @@ async def team_list(update: Update, context: ContextTypes.DEFAULT_TYPE):
             
             members = team_info['members']
             member_mentions = [
-                f"[{(await context.bot.get_chat_member(update.effective_chat.id, member)).user.first_name} {(await context.bot.get_chat_member(update.effective_chat.id, member)).user.last_name if (await context.bot.get_chat_member(update.effective_chat.id, member)).user.last_name else ''}](tg://user?id={member})".strip() 
+                await context.bot.get_chat_member(update.effective_chat.id, member)
                 for member in members
             ]
             
+            member_names = []
+            for member_mention in member_mentions:
+                member = member_mention.user
+                member_name = f"{member.first_name} {member.last_name if member.last_name else ''}".strip()
+                member_names.append(f"[{member_name}](tg://user?id={member_mention.user.id})")
+            
             response = f"| {extra_name} |:\nLeader: {leader_mention}\nMembers:\n"
-            response += "\n".join(member_mentions) if member_mentions else "No members."
+            response += "\n".join(member_names) if member_names else "No members."
             
             await update.message.reply_text(response, parse_mode=ParseMode.MARKDOWN)
     except BadRequest as e:
