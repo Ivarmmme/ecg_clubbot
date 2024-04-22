@@ -129,7 +129,7 @@ async def team_list(update: Update, context: ContextTypes.DEFAULT_TYPE):
         
         members = team_info['members']
         member_mentions = [
-            f"[{context.bot.get_chat_member(update.effective_chat.id, member).user.first_name} {context.bot.get_chat_member(update.effective_chat.id, member).user.last_name if context.bot.get_chat_member(update.effective_chat.id, member).user.last_name else ''}](tg://user?id={member})".strip() 
+            f"[{await context.bot.get_chat_member(update.effective_chat.id, member)).user.first_name} {await context.bot.get_chat_member(update.effective_chat.id, member)).user.last_name if (await context.bot.get_chat_member(update.effective_chat.id, member)).user.last_name else ''}](tg://user?id={member})".strip() 
             for member in members
         ]
         
@@ -137,7 +137,6 @@ async def team_list(update: Update, context: ContextTypes.DEFAULT_TYPE):
         response += "\n".join(member_mentions) if member_mentions else "No members."
         
         await update.message.reply_text(response, parse_mode=ParseMode.MARKDOWN)
-
 def main():
     # Get the bot token from an environment variable
     bot_token = os.environ.get("BOT_TOKEN")  # Replace with your actual environment variable name
