@@ -27,6 +27,7 @@ def save_data():
 
 # Function to add a member to a team
 async def add_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    uasync def add_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = str(update.effective_user.id)
     text = update.message.text.split()
     if len(text) != 2:
@@ -54,7 +55,7 @@ async def add_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     # Check if the user ID exists in the chat
     try:
-        member = context.bot.get_chat_member(update.effective_chat.id, member_id)
+        member = await context.bot.get_chat_member(update.effective_chat.id, member_id)
     except telegram.error.BadRequest as e:
         await update.message.reply_text("Invalid user ID. Please provide a valid user ID.")
         return
