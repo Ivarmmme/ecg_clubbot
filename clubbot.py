@@ -129,7 +129,7 @@ async def team_list(update: Update, context: ContextTypes.DEFAULT_TYPE):
         
         members = team_info['members']
         member_mentions = [
-            f"[{await context.bot.get_chat_member(update.effective_chat.id, member)).user.first_name} {await context.bot.get_chat_member(update.effective_chat.id, member)).user.last_name if (await context.bot.get_chat_member(update.effective_chat.id, member)).user.last_name else ''}](tg://user?id={member})".strip() 
+            f"[{(await context.bot.get_chat_member(update.effective_chat.id, member)).user.first_name} {(await context.bot.get_chat_member(update.effective_chat.id, member)).user.last_name if (await context.bot.get_chat_member(update.effective_chat.id, member)).user.last_name else ''}](tg://user?id={member})".strip() 
             for member in members
         ]
         
