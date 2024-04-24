@@ -1,11 +1,9 @@
 import dns.resolver
 import os
-from telegram import Update
-InlineKeyboardMarkup, 
-InlineKeyboardButton
+import pymongo
+from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.constants import ParseMode
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
-import pymongo
 
 # Manually configure the default DNS resolver
 dns.resolver.default_resolver = dns.resolver.Resolver(configure=False)
