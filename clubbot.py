@@ -1,29 +1,30 @@
-import json
 import os
+from pymongo import MongoClient
 import telegram
 from telegram import Update
 from telegram.constants import ParseMode
 from telegram.ext import Application, CommandHandler, ContextTypes
 
-# File path to store team members data
-DATA_FILE = 'team_members.json'
+# Connect to MongoDB
+MONGODB_URI = os.environ.get("MONGODB_URI")
+client = MongoClient(MONGODB_URI)
+db = client.get_database()
 
-# Load team members data from file
-try:
-    with open(DATA_FILE, 'r') as f:
-        team_members = json.load(f)
-except FileNotFoundError:
-    team_members = {
-        'team1': {'leader_id': '6369933143', 'members': [], 'extra_name': '👁️⃤ Goated Club 🐐'},
-        'team2': {'leader_id': '7196174452', 'members': [], 'extra_name': '🪬 Banana cult 🌵'},
-        'team3': {'leader_id': '6824897749', 'members': [], 'extra_name': '🦦 Otters club 🦦'},
-        'team4': {'leader_id': '5821282564', 'members': [], 'extra_name': '💰 The Billionaire Club 💰'}
-    }
+# Collection name for team members
+collection = db['team_members']
 
-# Function to save team members data to file
+# Function to save team members data to MongoDB
 def save_data():
-    with open(DATA_FILE, 'w') as f:
-        json.dump(team_members, f)
+    collection.update_one({}, {"$set": team_members}, upsert=True)
+
+# Function to load team members data from MongoDB
+def load_data():
+    global team_members
+    team_members = collection.find_one() or {}
+    return team_members
+
+# Load team members data from MongoDB
+team_members = load_data()
 
 # Function to add a member to a team
 async def add_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -167,3 +168,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+            
