@@ -1,12 +1,17 @@
+import dns.resolver
 import os
 from telegram import Update
 from telegram.constants import ParseMode
 from telegram.ext import Application, CommandHandler, ContextTypes
 import pymongo
 
+# Manually configure the default DNS resolver
+dns.resolver.default_resolver = dns.resolver.Resolver(configure=False)
+dns.resolver.default_resolver.nameservers = ['8.8.8.8', '8.8.4.4']  # Google's public DNS servers
+
 # MongoDB connection details
 MONGO_URL = "mongodb+srv://ivarmone:ivarmone009@cluster0.ggfwxno.mongodb.net/"
-DB_NAME = "ivarmone1"
+DB_NAME = "ivarmone"
 COLLECTION_NAME = "team_members"
 
 # Initialize MongoDB client
@@ -158,7 +163,7 @@ async def team_list(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await update.message.reply_text(response, parse_mode=ParseMode.MARKDOWN)
     except BadRequest as e:
         print(f"Error: {e}")
-
+        
 def main():
     # Get the bot token from an environment variable
     bot_token = os.environ.get("BOT_TOKEN")  # Replace with your actual environment variable name
@@ -176,4 +181,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-    
