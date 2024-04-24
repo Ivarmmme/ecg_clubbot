@@ -36,6 +36,29 @@ def load_data():
             'team4': {'leader_id': '5821282564', 'members': [], 'extra_name': '💰 The Billionaire Club 💰'}
         }
 
+# Function to allow a member to leave a team
+async def leave_team(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = str(update.effective_user.id)
+    team_members = load_data()
+
+    left_team = None
+    # Check all teams to see if the user is a member and not the leader
+    for team, data in team_members.items():
+        if data['leader_id'] == user_id:
+            await update.message.reply_text("You are the leader of the team and cannot leave using this command.")
+            return
+        
+        if user_id in data['members']:
+            data['members'].remove(user_id)
+            left_team = team
+            break
+
+    if left_team:
+        save_data(team_members)
+        await update.message.reply_text(f"You have left {left_team}.")
+    else:
+        await update.message.reply_text("You are not a member of any team.")
+
 # Function to add a member to a team
 async def add_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = str(update.effective_user.id)
@@ -172,6 +195,7 @@ def main():
 
     application.add_handler(CommandHandler("add", add_member))
     application.add_handler(CommandHandler("remove", remove_member))
+    application.add_handler(CommandHandler("leave", leave_team))
     application.add_handler(CommandHandler("team1", team_list))
     application.add_handler(CommandHandler("team2", team_list))
     application.add_handler(CommandHandler("team3", team_list))
