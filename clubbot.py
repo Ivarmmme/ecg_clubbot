@@ -1,30 +1,35 @@
 import os
-from pymongo import MongoClient
-import telegram
 from telegram import Update
 from telegram.constants import ParseMode
 from telegram.ext import Application, CommandHandler, ContextTypes
+import pymongo
 
-# Connect to MongoDB
-MONGODB_URI = os.environ.get("MONGODB_URI")
-client = MongoClient(MONGODB_URI)
-db = client.get_database()
+# MongoDB connection details
+MONGO_URL = "mongodb+srv://ivarmone:ivarmone009@cluster0.ggfwxno.mongodb.net/"
+DB_NAME = "ivarmone1"
+COLLECTION_NAME = "team_members"
 
-# Collection name for team members
-collection = db['team_members']
+# Initialize MongoDB client
+client = pymongo.MongoClient(MONGO_URL)
+db = client[DB_NAME]
+collection = db[COLLECTION_NAME]
 
 # Function to save team members data to MongoDB
-def save_data():
-    collection.update_one({}, {"$set": team_members}, upsert=True)
+def save_data(team_members):
+    collection.update_one({}, {"$set": {"team_members": team_members}}, upsert=True)
 
 # Function to load team members data from MongoDB
 def load_data():
-    global team_members
-    team_members = collection.find_one() or {}
-    return team_members
-
-# Load team members data from MongoDB
-team_members = load_data()
+    data = collection.find_one({})
+    if data:
+        return data.get("team_members", {})
+    else:
+        return {
+            'team1': {'leader_id': '6369933143', 'members': [], 'extra_name': '👁️⃤ Goated Club🐐'},
+            'team2': {'leader_id': '7196174452', 'members': [], 'extra_name': '🪬 Banana cult 🌵'},
+            'team3': {'leader_id': '5449676227', 'members': [], 'extra_name': '🦦 Otters club 🦦'},
+            'team4': {'leader_id': '5821282564', 'members': [], 'extra_name': '💰 The Billionaire Club 💰'}
+        }
 
 # Function to add a member to a team
 async def add_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -36,6 +41,7 @@ async def add_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     # Find which team the user is a leader of
     team_name = None
+    team_members = load_data()
     for team, data in team_members.items():
         if data['leader_id'] == user_id:
             team_name = team
@@ -86,7 +92,7 @@ async def add_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Add the user specified in the command to the team
     team_members[team_name]['members'].append(str(member_id))
     await update.message.reply_text(f"Member {member_id} has been added to {team_name}.")
-    save_data()
+    save_data(team_members)
 
 # Function to remove a member from a team
 async def remove_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -98,6 +104,7 @@ async def remove_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     # Find which team the user is a leader of
     team_name = None
+    team_members = load_data()
     for team, data in team_members.items():
         if data['leader_id'] == user_id:
             team_name = team
@@ -112,7 +119,7 @@ async def remove_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if member_id in team_members[team_name]['members']:
         team_members[team_name]['members'].remove(member_id)
         await update.message.reply_text(f"Member {member_id} has been removed from {team_name}.")
-        save_data()
+        save_data(team_members)
     else:
         await update.message.reply_text(f"Member {member_id} is not in {team_name}.")
 
@@ -120,6 +127,7 @@ async def remove_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def team_list(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         team_name = context.args[0] if context.args else update.message.text[1:]
+        team_members = load_data()
         if team_name in team_members:
             team_info = team_members[team_name]
             leader_id = team_info['leader_id']
@@ -150,7 +158,7 @@ async def team_list(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await update.message.reply_text(response, parse_mode=ParseMode.MARKDOWN)
     except BadRequest as e:
         print(f"Error: {e}")
-        
+
 def main():
     # Get the bot token from an environment variable
     bot_token = os.environ.get("BOT_TOKEN")  # Replace with your actual environment variable name
@@ -168,4 +176,4 @@ def main():
 
 if __name__ == '__main__':
     main()
-            
+    
