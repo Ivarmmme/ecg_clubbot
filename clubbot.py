@@ -1,6 +1,6 @@
 import dns.resolver
 import os
-from telegram import Update,
+from telegram import Update
 InlineKeyboardMarkup, 
 InlineKeyboardButton
 from telegram.constants import ParseMode
