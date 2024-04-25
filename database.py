@@ -1,7 +1,5 @@
+import dns.resolver
 import pymongo
-from pymongo import MongoClient
-from telegram import Update
-from telegram.ext import CallbackContext
 
 # Manually configure the default DNS resolver
 dns.resolver.default_resolver = dns.resolver.Resolver(configure=False)
