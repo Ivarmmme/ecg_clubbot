@@ -1,6 +1,6 @@
 from telegram import Update
 from telegram.ext import ContextTypes
-from main_script import load_data
+from clubbot import load_data
 
 async def mass_add(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = str(update.effective_user.id)
