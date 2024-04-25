@@ -114,6 +114,32 @@ async def mass_add(update: Update, context: ContextTypes.DEFAULT_TYPE):
     save_data(team_membersX)
     await update.message.reply_text(f"Members have been added to {team_name}.")
     
+# function to removeall members from team
+async def remove_all(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = str(update.effective_user.id)
+
+    # Load the current teams and members data
+    team_members = load_data()
+
+    # Find which team the user is a leader of
+    team_name = None
+    for team, data in team_members.items():
+        if data['leader_id'] == user_id:
+            team_name = team
+            break
+    
+    if not team_name:
+        await update.message.reply_text("You are not authorized to remove members from any team.")
+        return
+    
+    # Remove all members from the user's team
+    if team_members[team_name]['members']:
+        team_members[team_name]['members'] = []  # Clear the list of members
+        save_data(team_members)  # Save the updated data
+        await update.message.reply_text(f"All members have been removed from {team_name}.")
+    else:
+        await update.message.reply_text("There are no members to remove in your team.")
+        
 # Function to allow a member to leave a team
 async def leave_team(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = str(update.effective_user.id)
