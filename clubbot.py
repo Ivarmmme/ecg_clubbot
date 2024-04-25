@@ -44,7 +44,7 @@ def load_data():
         return data.get("team_members2", {})
     else:
         return {
-            'team1': {'leader_id': '6369933143', 'members': [], 'extra_name': '👁️⃤ Goated Club🐐'},
+            'team1': {'leader_id': '6369933143', 'members': [], 'extra_name': '👁️⃤ Goated Club'},
             'team2': {'leader_id': '7196174452', 'members': [], 'extra_name': '☮ Archangels ☮'},
             'team3': {'leader_id': '6824897749', 'members': [], 'extra_name': '🦦 Otters club 🦦'},
             'team4': {'leader_id': '5821282564', 'members': [], 'extra_name':'💰 The Billionaires Club 💰'},
