@@ -1,6 +1,6 @@
 from telegram import Update
 from telegram.ext import ContextTypes
-from clubbot import load_data, save_data
+from database import load_data, save_data
 
 async def authorize_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = str(update.effective_user.id)
