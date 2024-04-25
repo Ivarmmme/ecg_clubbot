@@ -39,22 +39,30 @@ def load_data():
         }
 
 # Function to update existing data in the database
-def update_data():
+def update_data(new_data):
     # Load current data from the database
     current_data = load_data()
-
-    # Update each team's leader ID and extra name if changed
-    for team_name, team_info in current_data.items():
-        # Check if leader ID or extra name has changed
-        if 'leader_id' in team_info and team_info['leader_id'] != new_data[team_name]['leader_id']:
-            collection.update_one({}, {"$set": {f"team_members.{team_name}.leader_id": new_data[team_name]['leader_id']}})
-        if 'extra_name' in team_info and team_info['extra_name'] != new_data[team_name]['extra_name']:
-            collection.update_one({}, {"$set": {f"team_members.{team_name}.extra_name": new_data[team_name]['extra_name']}})
-
-    # Check for any new teams and add them to the database
+    
+    # Iterate over each team in the new data
     for team_name, team_info in new_data.items():
-        if team_name not in current_data:
+        # Check if the team exists in the current data
+        if team_name in current_data:
+            current_team_info = current_data[team_name]
+            
+            # Construct the update query for the current team
+            update_query = {}
+            for key, value in team_info.items():
+                # Check if the field exists and has changed
+                if key in current_team_info and current_team_info[key] != value:
+                    update_query[f"team_members.{team_name}.{key}"] = value
+            
+            # Perform the update query for the current team
+            if update_query:
+                collection.update_one({}, {"$set": update_query})
+        else:
+            # If the team is new, add it to the database
             collection.update_one({}, {"$set": {f"team_members.{team_name}": team_info}}, upsert=True)
+
             
 # Function to allow a member to leave a team
 async def leave_team(update: Update, context: ContextTypes.DEFAULT_TYPE):
