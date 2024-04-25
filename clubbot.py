@@ -38,6 +38,24 @@ def load_data():
             'team5': {'leader_id': '5920451104', 'members': [], 'extra_name': '👑Imperial🦇'}
         }
 
+# Function to update existing data in the database
+def update_data():
+    # Load current data from the database
+    current_data = load_data()
+
+    # Update each team's leader ID and extra name if changed
+    for team_name, team_info in current_data.items():
+        # Check if leader ID or extra name has changed
+        if 'leader_id' in team_info and team_info['leader_id'] != new_data[team_name]['leader_id']:
+            collection.update_one({}, {"$set": {f"team_members.{team_name}.leader_id": new_data[team_name]['leader_id']}})
+        if 'extra_name' in team_info and team_info['extra_name'] != new_data[team_name]['extra_name']:
+            collection.update_one({}, {"$set": {f"team_members.{team_name}.extra_name": new_data[team_name]['extra_name']}})
+
+    # Check for any new teams and add them to the database
+    for team_name, team_info in new_data.items():
+        if team_name not in current_data:
+            collection.update_one({}, {"$set": {f"team_members.{team_name}": team_info}}, upsert=True)
+            
 # Function to allow a member to leave a team
 async def leave_team(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = str(update.effective_user.id)
