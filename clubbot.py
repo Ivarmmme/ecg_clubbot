@@ -5,6 +5,7 @@ from telegram import Update
 from telegram.constants import ParseMode
 from telegram.ext import Application, CommandHandler, ContextTypes
 import pymongo
+from mass_add import mass_add
 
 # Manually configure the default DNS resolver
 dns.resolver.default_resolver = dns.resolver.Resolver(configure=False)
@@ -209,6 +210,7 @@ def main():
     application.add_handler(CommandHandler("team3", team_list))
     application.add_handler(CommandHandler("team4", team_list))
     application.add_handler(CommandHandler("team5", team_list))
+    application.add_handler(CommandHandler("madd", mass_add))
 
     application.run_polling()
 
