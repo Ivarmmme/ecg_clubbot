@@ -32,9 +32,10 @@ def load_data():
     else:
         return {
             'team1': {'leader_id': '6369933143', 'members': [], 'extra_name': '👁️⃤ Goated Club🐐'},
-            'team2': {'leader_id': '7196174452', 'members': [], 'extra_name': '🪬 Banana cult 🌵'},
-            'team3': {'leader_id': '5449676227', 'members': [], 'extra_name': '🦦 Otters club 🦦'},
-            'team4': {'leader_id': '5821282564', 'members': [], 'extra_name': '💰 The Billionaire Club 💰'}
+            'team2': {'leader_id': '7196174452', 'members': [], 'extra_name': '☮ Archangels ☮'},
+            'team3': {'leader_id': '6824897749', 'members': [], 'extra_name': '🦦 Otters club 🦦'},
+            'team4': {'leader_id': '5821282564', 'members': [], 'extra_name':'💰 The Billionaires Club 💰'},
+            'team5': {'leader_id': '5920451104', 'members': [], 'extra_name': '👑Imperial🦇'}
         }
 
 # Function to allow a member to leave a team
@@ -89,7 +90,7 @@ async def add_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     # Check if the team has reached its member limit
-    max_members_per_team = 14  # Set your desired limit here
+    max_members_per_team = 11  # Set your desired limit here
     current_members_count = len(team_members[team_name]['members'])
     if current_members_count >= max_members_per_team:
         await update.message.reply_text(f"Sorry, {team_name} has reached the maximum member limit.")
@@ -208,6 +209,7 @@ def main():
     application.add_handler(CommandHandler("team2", team_list))
     application.add_handler(CommandHandler("team3", team_list))
     application.add_handler(CommandHandler("team4", team_list))
+    application.add_handler(CommandHandler("team5", team_list))
 
     application.run_polling()
 
