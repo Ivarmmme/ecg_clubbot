@@ -1,5 +1,6 @@
 import dns.resolver
 import os
+from telegram.error import BadRequest 
 from telegram import Update
 from telegram.constants import ParseMode
 from telegram.ext import Application, CommandHandler, ContextTypes
