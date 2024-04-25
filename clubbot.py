@@ -4,8 +4,10 @@ from telegram.error import BadRequest
 from telegram import Update
 from telegram.constants import ParseMode
 from telegram.ext import Application, CommandHandler, ContextTypes
-import pymongo
+import pymongo 
+from authorization import authorize_member, unauthorize_member
 
+# Other imports and code...
 # Manually configure the default DNS resolver
 dns.resolver.default_resolver = dns.resolver.Resolver(configure=False)
 dns.resolver.default_resolver.nameservers = ['8.8.8.8', '8.8.4.4']  # Google's public DNS servers
