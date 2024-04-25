@@ -13,7 +13,7 @@ dns.resolver.default_resolver.nameservers = ['8.8.8.8', '8.8.4.4']  # Google's p
 # MongoDB connection details
 MONGO_URL = "mongodb+srv://ivarmone:ivarmone009@cluster0.ggfwxno.mongodb.net/"
 DB_NAME = "ivarmone"
-COLLECTION_NAME = "team_members3"
+COLLECTION_NAME = "team_membersX"
 
 # Initialize MongoDB client
 client = pymongo.MongoClient(MONGO_URL)
@@ -21,40 +21,13 @@ db = client[DB_NAME]
 collection = db[COLLECTION_NAME]
 
 # Function to save team members data to MongoDB
-# Function to save team metadata to MongoDB
-def save_metadata(team_name, metadata):
-    collection.update_one({}, {"$set": {f"team_members.{team_name}": metadata}})
-
-# Function to save team members data to MongoDB
-def save_data(team_members):
-    # Load the current data from the database
-    current_data = load_data()
-    
-    # Track changes and update team metadata
-    for team_name, new_team_data in team_members.items():
-        current_team_data = current_data.get(team_name, {})
-        
-        # Extract existing members data
-        existing_members = current_team_data.get('members', [])
-        
-        # Update team metadata
-        metadata_update = {}
-        for key, value in new_team_data.items():
-            if key != 'members' and current_team_data.get(key) != value:
-                metadata_update[key] = value
-        
-        # Combine metadata update with existing members data
-        updated_team_data = {**metadata_update, 'members': existing_members}
-        
-        # Save updated metadata to the database
-        save_metadata(team_name, updated_team_data)
-
+def save_data(team_members): collection.update_one({}, {"$set": {"team_membersX": team_members}}, upsert=True)
 
 # Function to load team members data from MongoDB
 def load_data():
     data = collection.find_one({})
     if data:
-        return data.get("team_members3", {})
+        return data.get("team_membersX", {})
     else:
         return {
             'team1': {'leader_id': '6369933143', 'members': [], 'extra_name': '👁️⃤ Goated Club'},
@@ -67,11 +40,11 @@ def load_data():
 # Function to allow a member to leave a team
 async def leave_team(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = str(update.effective_user.id)
-    team_members3 = load_data()
+    team_membersX = load_data()
 
     left_team = None
     # Check all teams to see if the user is a member and not the leader
-    for team, data in team_members3.items():
+    for team, data in team_membersX.items():
         if data['leader_id'] == user_id:
             await update.message.reply_text("You are the leader of the team and cannot leave using this command.")
             return
@@ -82,7 +55,7 @@ async def leave_team(update: Update, context: ContextTypes.DEFAULT_TYPE):
             break
 
     if left_team:
-        save_data(team_members3)
+        save_data(team_membersX)
         await update.message.reply_text(f"You have left {left_team}.")
     else:
         await update.message.reply_text("You are not a member of any team.")
@@ -97,8 +70,8 @@ async def add_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     # Find which team the user is a leader of
     team_name = None
-    team_members3 = load_data()
-    for team, data in team_members3.items():
+    team_membersX = load_data()
+    for team, data in team_membersX.items():
         if data['leader_id'] == user_id:
             team_name = team
             break
@@ -117,7 +90,7 @@ async def add_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # Check if the team has reached its member limit
     max_members_per_team = 11  # Set your desired limit here
-    current_members_count = len(team_members3[team_name]['members'])
+    current_members_count = len(team_membersX[team_name]['members'])
     if current_members_count >= max_members_per_team:
         await update.message.reply_text(f"Sorry, {team_name} has reached the maximum member limit.")
         return
@@ -133,7 +106,7 @@ async def add_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     
     # Check if the user being added is already a leader or a member of another team
-    for team, data in team_members3.items():
+    for team, data in team_membersX.items():
         if member_id == int(data['leader_id']):
             await update.message.reply_text("You cannot add another leader to your team.")
             return
@@ -142,20 +115,20 @@ async def add_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
             return
     
     # Check if the user is already a member of the team
-    if str(member_id) in team_members3[team_name]['members']:
+    if str(member_id) in team_membersX[team_name]['members']:
         await update.message.reply_text("This user is already a member of your team.")
         return
     
     # Check if the user is a member of any other team
-    for team, data in team_members3.items():
+    for team, data in team_membersX.items():
         if str(member_id) in data['members']:
             await update.message.reply_text("This user is already a member of another team.")
             return
     
     # Add the user specified in the command to the team
-    team_members3[team_name]['members'].append(str(member_id))
+    team_membersX[team_name]['members'].append(str(member_id))
     await update.message.reply_text(f"Member {member_id} has been added to {team_name}.")
-    save_data(team_members3)
+    save_data(team_membersX)
 
 # Function to remove a member from a team
 async def remove_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -167,8 +140,8 @@ async def remove_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     # Find which team the user is a leader of
     team_name = None
-    team_members3 = load_data()
-    for team, data in team_members3.items():
+    team_membersX = load_data()
+    for team, data in team_membersX.items():
         if data['leader_id'] == user_id:
             team_name = team
             break
@@ -179,10 +152,10 @@ async def remove_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     # Remove the user specified in the command from the team
     member_id = text[1]
-    if member_id in team_members3[team_name]['members']:
-        team_members3[team_name]['members'].remove(member_id)
+    if member_id in team_membersX[team_name]['members']:
+        team_membersX[team_name]['members'].remove(member_id)
         await update.message.reply_text(f"Member {member_id} has been removed from {team_name}.")
-        save_data(team_members3)
+        save_data(team_membersX)
     else:
         await update.message.reply_text(f"Member {member_id} is not in {team_name}.")
 
@@ -190,9 +163,9 @@ async def remove_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def team_list(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         team_name = context.args[0] if context.args else update.message.text[1:]
-        team_members3 = load_data()
-        if team_name in team_members3:
-            team_info = team_members3[team_name]
+        team_membersX = load_data()
+        if team_name in team_membersX:
+            team_info = team_membersX[team_name]
             leader_id = team_info['leader_id']
             leader_mention = None
             leader = await context.bot.get_chat_member(update.effective_chat.id, leader_id)
@@ -242,4 +215,5 @@ def main():
 if __name__ == '__main__':
     main()
 
-        
+
+    
