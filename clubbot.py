@@ -294,7 +294,8 @@ def main():
     application.add_handler(CommandHandler("team5", team_list))
     application.add_handler(CommandHandler("madd", mass_add))
     application.add_handler(CommandHandler("removeall", remove_all))
-
+    application.add_handler(CommandHandler("auth", authorize_member))
+    application.add_handler(CommandHandler("unauth", unauthorize_member))
     application.run_polling()
 
 if __name__ == '__main__':
