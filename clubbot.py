@@ -200,9 +200,7 @@ def main():
     application.add_handler(CommandHandler("team2", team_list))
     application.add_handler(CommandHandler("team3", team_list))
     application.add_handler(CommandHandler("team4", team_list))
-    application.add_handler(CommandHandler("req", request_to_join))
-    application.add_handler(CallbackQueryHandler(handle_join_request))
-   
+
     application.run_polling()
 
 if __name__ == '__main__':
