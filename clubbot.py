@@ -182,7 +182,12 @@ async def add_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not team_name:
         await update.message.reply_text("You are not authorized to add members to any team.")
         return
-    
+
+    # Validate if the user is an authorized user
+    if 'auth_users' not in team_members[team_name] or user_id not in team_members[team_name]['auth_users']:
+        await update.message.reply_text("You are not authorized to add members to your team.")
+        return
+        
     # Validate the user ID
     member_id = text[1]
     try:
@@ -252,7 +257,12 @@ async def remove_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not team_name:
         await update.message.reply_text("You are not authorized to remove members from any team.")
         return
-    
+
+    # Validate if the user is an authorized user
+    if 'auth_users' not in team_members[team_name] or user_id not in team_members[team_name]['auth_users']:
+        await update.message.reply_text("You are not authorized to remove members from your team.")
+        return
+        
     # Remove the user specified in the command from the team
     member_id = text[1]
     if member_id in team_membersX[team_name]['members']:
