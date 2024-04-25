@@ -313,6 +313,7 @@ def main():
     application.add_handler(CommandHandler("team4", team_list))
     application.add_handler(CommandHandler("team5", team_list))
     application.add_handler(CommandHandler("madd", mass_add))
+    application.add_handler(CommandHandler("removeall", remove_all))
 
     application.run_polling()
 
