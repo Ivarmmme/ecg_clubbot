@@ -4,7 +4,6 @@ from telegram import Update
 from telegram.constants import ParseMode
 from telegram.ext import Application, CommandHandler, ContextTypes
 from database import load_data, save_data   
-from authorization import authorize_member, unauthorize_member
 
 # Function to mass add members to a team
 
@@ -152,11 +151,6 @@ async def add_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not team_name:
         await update.message.reply_text("You are not authorized to add members to any team.")
         return
-
-    # Validate if the user is an authorized user
-    if 'auth_users' not in team_members[team_name] or user_id not in team_members[team_name]['auth_users']:
-        await update.message.reply_text("You are not authorized to add members to your team.")
-        return
         
     # Validate the user ID
     member_id = text[1]
@@ -227,11 +221,6 @@ async def remove_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not team_name:
         await update.message.reply_text("You are not authorized to remove members from any team.")
         return
-
-    # Validate if the user is an authorized user
-    if 'auth_users' not in team_members[team_name] or user_id not in team_members[team_name]['auth_users']:
-        await update.message.reply_text("You are not authorized to remove members from your team.")
-        return
         
     # Remove the user specified in the command from the team
     member_id = text[1]
@@ -294,8 +283,7 @@ def main():
     application.add_handler(CommandHandler("team5", team_list))
     application.add_handler(CommandHandler("madd", mass_add))
     application.add_handler(CommandHandler("removeall", remove_all))
-    application.add_handler(CommandHandler("auth", authorize_member))
-    application.add_handler(CommandHandler("unauth", unauthorize_member))
+    
     application.run_polling()
 
 if __name__ == '__main__':
