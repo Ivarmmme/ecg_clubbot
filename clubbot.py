@@ -22,7 +22,20 @@ collection = db[COLLECTION_NAME]
 
 # Function to save team members data to MongoDB
 def save_data(team_members):
-    collection.update_one({}, {"$set": {"team_members": team_members}}, upsert=True)
+    # Load the current data from the database
+    current_data = load_data()
+    
+    # Track changes and construct update queries
+    update_queries = {}
+    for team, new_team_data in team_members.items():
+        current_team_data = current_data.get(team, {})
+        for key, value in new_team_data.items():
+            if current_team_data.get(key) != value:
+                update_queries.setdefault(team, {}).update({key: value})
+    
+    # Apply update queries to the database
+    for team, update_query in update_queries.items():
+        collection.update_one({}, {"$set": {f"team_members.{team}": update_query}})
 
 # Function to load team members data from MongoDB
 def load_data():
@@ -37,33 +50,7 @@ def load_data():
             'team4': {'leader_id': '5821282564', 'members': [], 'extra_name':'💰 The Billionaires Club 💰'},
             'team5': {'leader_id': '5920451104', 'members': [], 'extra_name': '👑Imperial🦇'}
         }
-
-# Function to update existing data in the database
-def update_data(new_data):
-    # Load current data from the database
-    current_data = load_data()
-    
-    # Iterate over each team in the new data
-    for team_name, team_info in new_data.items():
-        # Check if the team exists in the current data
-        if team_name in current_data:
-            current_team_info = current_data[team_name]
-            
-            # Construct the update query for the current team
-            update_query = {}
-            for key, value in team_info.items():
-                # Check if the field exists and has changed
-                if key in current_team_info and current_team_info[key] != value:
-                    update_query[f"team_members.{team_name}.{key}"] = value
-            
-            # Perform the update query for the current team
-            if update_query:
-                collection.update_one({}, {"$set": update_query})
-        else:
-            # If the team is new, add it to the database
-            collection.update_one({}, {"$set": {f"team_members.{team_name}": team_info}}, upsert=True)
-
-            
+           
 # Function to allow a member to leave a team
 async def leave_team(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = str(update.effective_user.id)
