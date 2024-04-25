@@ -87,7 +87,14 @@ async def add_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except ValueError:
         await update.message.reply_text("Invalid user ID. Please provide a valid user ID.")
         return
-    
+
+    # Check if the team has reached its member limit
+    max_members_per_team = 5  # Set your desired limit here
+    current_members_count = len(team_members[team_name]['members'])
+    if current_members_count >= max_members_per_team:
+        await update.message.reply_text(f"Sorry, {team_name} has reached the maximum member limit.")
+        return
+        
     # Check if the user ID exists in the chat
     try:
         member = await context.bot.get_chat_member(update.effective_chat.id, member_id)
