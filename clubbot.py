@@ -21,24 +21,33 @@ db = client[DB_NAME]
 collection = db[COLLECTION_NAME]
 
 # Function to save team members data to MongoDB
+# Function to save team metadata to MongoDB
+def save_metadata(team_name, metadata):
+    collection.update_one({}, {"$set": {f"team_members.{team_name}": metadata}})
+
+# Function to save team members data to MongoDB
 def save_data(team_members):
     # Load the current data from the database
     current_data = load_data()
     
-    # Track changes and construct update queries
-    update_queries = {}
-    for team, new_team_data in team_members.items():
-        current_team_data = current_data.get(team, {})
-        update_query = {}
+    # Track changes and update team metadata
+    for team_name, new_team_data in team_members.items():
+        current_team_data = current_data.get(team_name, {})
+        
+        # Extract existing members data
+        existing_members = current_team_data.get('members', [])
+        
+        # Update team metadata
+        metadata_update = {}
         for key, value in new_team_data.items():
-            if current_team_data.get(key) != value:
-                update_query[key] = value
-        if update_query:
-            update_queries[team] = update_query
-    
-    # Apply update queries to the database
-    for team, update_query in update_queries.items():
-        collection.update_one({}, {"$set": {f"team_members.{team}": update_query}})
+            if key != 'members' and current_team_data.get(key) != value:
+                metadata_update[key] = value
+        
+        # Combine metadata update with existing members data
+        updated_team_data = {**metadata_update, 'members': existing_members}
+        
+        # Save updated metadata to the database
+        save_metadata(team_name, updated_team_data)
 
 
 # Function to load team members data from MongoDB
