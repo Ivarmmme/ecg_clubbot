@@ -4,6 +4,7 @@ from telegram import Update
 from telegram.constants import ParseMode
 from telegram.ext import Application, CommandHandler, ContextTypes
 from database import load_data, save_data   
+from authorization import authorize_member, unauthorize_member
 
 # Function to mass add members to a team
 
