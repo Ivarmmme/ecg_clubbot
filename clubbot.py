@@ -89,7 +89,7 @@ async def add_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     # Check if the team has reached its member limit
-    max_members_per_team = 3  # Set your desired limit here
+    max_members_per_team = 14  # Set your desired limit here
     current_members_count = len(team_members[team_name]['members'])
     if current_members_count >= max_members_per_team:
         await update.message.reply_text(f"Sorry, {team_name} has reached the maximum member limit.")
