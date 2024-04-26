@@ -5,59 +5,44 @@ from telegram.constants import ParseMode
 from telegram.ext import Application, CommandHandler, ContextTypes, CallbackQueryHandler
 from database import load_data, save_data   
 
-# Define the request status dictionary
-request_status = {}
-
-# Command handler function for /request_to_join
+# Function to handle the /request_to_join command
 async def request_to_join(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = update.effective_user.id
+    user_id = str(update.effective_user.id)
     
-    # Store the user's ID along with their request
-    request_status[user_id] = {'selected_team': None}
+    # Check if the user has already initiated a request
+    if user_id in request_status:
+        await update.message.reply_text("You have already initiated a request. Please wait for it to be processed.")
+        return
 
-    # Define available teams with their extra names
-    teams = {
-        'team1': '👁️⃤ Goated Club',
-        'team2': '☮ Archangels ☮',
-        'team3': '🦦 Otters club 🦦',
-        'team4': '💰 The Billionaires Club 💰',
-        'team5': '👑Imperial🦇'
-    }
+    # Generate a unique ID for the request
+    request_id = str(uuid.uuid4())
+    
+    # Record the user ID for this request
+    request_status[request_id] = {'initiator_id': user_id}
 
-    # Create inline keyboard with buttons for each team
-    keyboard = [
-        [InlineKeyboardButton(f"{team_name}", callback_data=f"join_{team}")] for team, team_name in teams.items()
-    ]
+    # Send a message asking the user to specify the team they want to request to join
+    keyboard = [[InlineKeyboardButton("Team 1", callback_data=f"join_{request_id}_team1"),
+                 InlineKeyboardButton("Team 2", callback_data=f"join_{request_id}_team2"),
+                 InlineKeyboardButton("Team 3", callback_data=f"join_{request_id}_team3"),
+                 InlineKeyboardButton("Team 4", callback_data=f"join_{request_id}_team4"),
+                 InlineKeyboardButton("Team 5", callback_data=f"join_{request_id}_team5")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
+    await update.message.reply_text("Please select the team you want to request to join:", reply_markup=reply_markup)
 
-    # Send message with inline keyboard
-    message = await update.message.reply_text("Please select the team you want to join:", reply_markup=reply_markup)
-
-    # Update the request status with the message ID
-    request_status[user_id]['message_id'] = message.message_id
-
-
-# Callback query handler function for button clicks
+# Function to handle button clicks
 async def button_click(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    user_id = str(query.from_user.id)  # Get the user ID of the person who clicked the button
+    user_id = str(query.from_user.id)
+    request_id, team = query.data.split("_")[1], query.data.split("_")[2]
 
-    # Check if the user ID exists in the request_status dictionary
-    if user_id not in request_status:
+    # Check if the user is authorized to interact with this section
+    if user_id != request_status[request_id]['initiator_id']:
         await query.answer(text="You are not authorized to interact with these buttons.")
         return
 
-    # Check if the user has already selected a team
-    if request_status[user_id]['selected_team'] is not None:
-        await query.answer(text="You have already selected a team. Please wait for approval.")
-        return
-
-    selected_team = query.data.split("_")[1]
-
-    # Update the selected team for the user in the request_status dictionary
-    request_status[user_id]['selected_team'] = selected_team
-
-    await query.message.edit_text("Your request has been sent to the corresponding team leader. Please wait for approval.")
+    # Process the button click
+    await query.answer()
+    await query.message.edit_text(f"Your request to join Team {team} has been sent. Please wait for approval.")
 # Function to mass add members to a team
 
 async def mass_add(update: Update, context: ContextTypes.DEFAULT_TYPE):
