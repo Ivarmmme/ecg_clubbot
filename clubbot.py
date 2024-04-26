@@ -42,7 +42,26 @@ async def request_to_join(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     # Send a message with the keyboard
     await update.message.reply_text("Please select the team you want to request to join:", reply_markup=reply_markup)
-
+    
+    # Send request messages to team leaders
+    for team_id, team_name in enumerate(['Goated Club', 'Archangels', 'Otters Club', 'The Billionaires Club', 'Imperial']):
+        # Assuming team leader IDs are stored in a dictionary called team_leaders
+        team_leader_id = team_leaders.get(f'team{team_id+1}_leader_id')
+        if team_leader_id:
+            message_text = (
+                f"Request to join {team_name}\n"
+                f"User: {update.effective_user.first_name}\n"
+                f"ID: {update.effective_user.id}\n\n"
+                "Do you want to accept this request?"
+            )
+            keyboard = [
+                [
+                    InlineKeyboardButton("Accept", callback_data=f"accept_{request_id}_{team_id+1}"),
+                    InlineKeyboardButton("Reject", callback_data=f"reject_{request_id}_{team_id+1}")
+                ]
+            ]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            await context.bot.send_message(chat_id=team_leader_id, text=message_text, reply_markup=reply_markup)
 # Function to handle button clicks
 async def button_click(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
