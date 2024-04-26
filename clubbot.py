@@ -69,12 +69,7 @@ async def button_click(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Close the message and update it to indicate that the request has been sent
     await query.message.edit_text("Your request has been sent to the corresponding team leader. "
                                   "Please wait until they approve you.")
-
-# Add the command handler for /request_to_join
-application.add_handler(CommandHandler("request_to_join", request_to_join))
-
-# Add the callback handler for button clicks
-application.add_handler(CallbackQueryHandler(button_click, pattern=r'^join_'))
+    
 
 # Function to mass add members to a team
 
@@ -354,7 +349,7 @@ def main():
     application.add_handler(CommandHandler("team5", team_list))
     application.add_handler(CommandHandler("madd", mass_add))
     application.add_handler(CommandHandler("removeall", remove_all))
-    application.add_handler(CommandHandler("request_to_join", request_to_join))
+    application.add_handler(CommandHandler("req", request_to_join))
     application.add_handler(CallbackQueryHandler(button_click, pattern=r'^join_'))
     
     application.run_polling()
