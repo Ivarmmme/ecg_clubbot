@@ -58,7 +58,6 @@ async def button_click(update: Update, context: ContextTypes.DEFAULT_TYPE):
     request_status[user_id]['selected_team'] = selected_team
 
     await query.message.edit_text("Your request has been sent to the corresponding team leader. Please wait for approval.")
-
 # Function to mass add members to a team
 
 async def mass_add(update: Update, context: ContextTypes.DEFAULT_TYPE):
