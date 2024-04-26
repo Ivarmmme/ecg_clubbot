@@ -1,9 +1,80 @@
 import os
 from telegram.error import BadRequest 
-from telegram import Update
+from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.constants import ParseMode
-from telegram.ext import Application, CommandHandler, ContextTypes
+from telegram.ext import Application, CommandHandler, ContextTypes, CallbackQueryHandler
 from database import load_data, save_data   
+
+# Define a dictionary to store the request status for each user
+request_status = {}
+
+# Command handler function for /request_to_join
+async def request_to_join(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    if user_id in request_status:
+        await update.message.reply_text("You have already requested to join a team. Please wait for approval.")
+        return
+
+    # Store the user's ID along with their request
+    request_status[user_id] = {'selected_team': None}
+
+    # Define available teams with their extra names
+    teams = {
+        'team1': '👁️⃤ Goated Club',
+        'team2': '☮ Archangels ☮',
+        'team3': '🦦 Otters club 🦦',
+        'team4': '💰 The Billionaires Club 💰',
+        'team5': '👑Imperial🦇'
+    }
+
+    # Create inline keyboard with buttons for each team
+    keyboard = [
+        [InlineKeyboardButton(f"{team_name}", callback_data=f"join_{team}") for team, team_name in teams.items()]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    # Send message with inline keyboard
+    message = await update.message.reply_text("Please select the team you want to join:", reply_markup=reply_markup)
+
+    # Update the request status with the message ID
+    request_status[user_id]['message_id'] = message.message_id
+
+# Callback query handler function for button clicks
+async def button_click(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    user_id = query.from_user.id
+    selected_team = query.data.split('_')[1]
+
+    # Check if the user who clicked the button is the same as the user who issued the command
+    if user_id != query.message.chat_id:
+        # Reply inline with a message indicating that the user is not authorized
+        results = [
+            InlineQueryResultArticle(
+                id='1',
+                title='Unauthorized',
+                input_message_content=InputTextMessageContent("You are not authorized to interact with these buttons.")
+            )
+        ]
+        await context.bot.answer_inline_query(update.inline_query.id, results)
+        return
+
+    # Check if the user has already requested to join a team
+    if user_id not in request_status or request_status[user_id]['selected_team'] is not None:
+        await query.answer(text="You have already requested to join a team or your request is being processed.")
+        return
+
+    # Update the request status with the selected team
+    request_status[user_id]['selected_team'] = selected_team
+
+    # Close the message and update it to indicate that the request has been sent
+    await query.message.edit_text("Your request has been sent to the corresponding team leader. "
+                                  "Please wait until they approve you.")
+
+# Add the command handler for /request_to_join
+application.add_handler(CommandHandler("request_to_join", request_to_join))
+
+# Add the callback handler for button clicks
+application.add_handler(CallbackQueryHandler(button_click, pattern=r'^join_'))
 
 # Function to mass add members to a team
 
@@ -283,6 +354,7 @@ def main():
     application.add_handler(CommandHandler("team5", team_list))
     application.add_handler(CommandHandler("madd", mass_add))
     application.add_handler(CommandHandler("removeall", remove_all))
+    application.add_handler(CommandHandler("req", request_to_join))
     
     application.run_polling()
 
