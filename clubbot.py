@@ -36,6 +36,9 @@ async def request_to_join(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Update the request status with the message ID
     request_status[user_id]['message_id'] = message.message_id
 
+# Initialize the request status dictionary
+request_status = {}
+
 # Callback query handler function for button clicks
 async def button_click(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
