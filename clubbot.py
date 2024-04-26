@@ -5,16 +5,10 @@ from telegram.constants import ParseMode
 from telegram.ext import Application, CommandHandler, ContextTypes, CallbackQueryHandler
 from database import load_data, save_data   
 
-# Define a dictionary to store the request status for each user
-request_status = {}
-
 # Command handler function for /request_to_join
 async def request_to_join(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
-    if user_id in request_status:
-        await update.message.reply_text("You have already requested to join a team. Please wait for approval.")
-        return
-
+    
     # Store the user's ID along with their request
     request_status[user_id] = {'selected_team': None}
 
@@ -29,7 +23,7 @@ async def request_to_join(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # Create inline keyboard with buttons for each team
     keyboard = [
-        [InlineKeyboardButton(f"{team_name}", callback_data=f"join_{team}") for team, team_name in teams.items()]
+        [InlineKeyboardButton(f"{team_name}", callback_data=f"join_{team}")] for team, team_name in teams.items()
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
@@ -48,19 +42,7 @@ async def button_click(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Check if the user who clicked the button is the same as the user who issued the command
     if user_id != query.message.chat_id:
         # Reply inline with a message indicating that the user is not authorized
-        results = [
-            InlineQueryResultArticle(
-                id='1',
-                title='Unauthorized',
-                input_message_content=InputTextMessageContent("You are not authorized to interact with these buttons.")
-            )
-        ]
-        await context.bot.answer_inline_query(update.inline_query.id, results)
-        return
-
-    # Check if the user has already requested to join a team
-    if user_id not in request_status or request_status[user_id]['selected_team'] is not None:
-        await query.answer(text="You have already requested to join a team or your request is being processed.")
+        await query.answer(text="You are not authorized to interact with these buttons.")
         return
 
     # Update the request status with the selected team
@@ -69,7 +51,6 @@ async def button_click(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Close the message and update it to indicate that the request has been sent
     await query.message.edit_text("Your request has been sent to the corresponding team leader. "
                                   "Please wait until they approve you.")
-    
 
 # Function to mass add members to a team
 
