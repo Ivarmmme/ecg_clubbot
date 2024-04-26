@@ -40,21 +40,24 @@ async def request_to_join(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # Callback query handler function for button clicks
 async def button_click(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    user_id = query.from_user.id
-    selected_team = query.data.split('_')[1]
+    user_id = str(query.from_user.id)  # Get the user ID of the person who clicked the button
 
-    # Check if the user who clicked the button is the same as the user who issued the command
-    if user_id != update.effective_user.id:
-        # Reply inline with a message indicating that the user is not authorized
+    # Check if the user ID exists in the request_status dictionary
+    if user_id not in request_status:
         await query.answer(text="You are not authorized to interact with these buttons.")
         return
 
-    # Update the request status with the selected team
+    # Check if the user has already selected a team
+    if request_status[user_id]['selected_team'] is not None:
+        await query.answer(text="You have already selected a team. Please wait for approval.")
+        return
+
+    selected_team = query.data.split("_")[1]
+
+    # Update the selected team for the user in the request_status dictionary
     request_status[user_id]['selected_team'] = selected_team
 
-    # Close the message and update it to indicate that the request has been sent
-    await query.message.edit_text("Your request has been sent to the corresponding team leader. "
-                                  "Please wait until they approve you.")
+    await query.message.edit_text("Your request has been sent to the corresponding team leader. Please wait for approval.")
 
 # Function to mass add members to a team
 
