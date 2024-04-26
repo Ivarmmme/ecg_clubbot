@@ -33,7 +33,7 @@ async def request_to_join(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message = await update.message.reply_text("Make your request to corresponding team leaders:", reply_markup=reply_markup)
     
     # Schedule the deletion of the message after 10 seconds
-    await asyncio.sleep(10)
+    await asyncio.sleep(30)
     await message.delete()
 
 async def mass_add(update: Update, context: ContextTypes.DEFAULT_TYPE):
