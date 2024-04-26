@@ -355,6 +355,7 @@ def main():
     application.add_handler(CommandHandler("madd", mass_add))
     application.add_handler(CommandHandler("removeall", remove_all))
     application.add_handler(CommandHandler("req", request_to_join))
+    application.add_handler(CallbackQueryHandler(button_click, pattern=r'^join_'))
     
     application.run_polling()
 
