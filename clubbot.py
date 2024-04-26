@@ -4,24 +4,24 @@ from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.constants import ParseMode
 from telegram.ext import Application, CommandHandler, ContextTypes, CallbackQueryHandler
 from database import load_data, save_data   
-
+import asyncio
 
 # Function to handle the /req command
 async def request_to_join(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = []
     teams = {
-        'team1': {'leader_id': '6369933143', 'extra_name': '👁️⃤ Goated Club'},
-        'team2': {'leader_id': '7196174452', 'extra_name': '☮ Archangels ☮'},
-        'team3': {'leader_id': '6824897749', 'extra_name': '🦦 Otters club 🦦'},
-        'team4': {'leader_id': '5821282564', 'extra_name':'💰 The Billionaires Club 💰'},
-        'team5': {'leader_id': '5920451104', 'extra_name': '👑Imperial🦇'}
+        'team1': {'leader_u': 'Dankee0', 'extra_name': '👁️⃤ Goated Club'},
+        'team2': {'leader_u': 'iloveyourmommymore', 'extra_name': '☮ Archangels ☮'},
+        'team3': {'leader_u': 'everydayyhustle', 'extra_name': '🦦 Otters club 🦦'},
+        'team4': {'leader_u': 'GODOFPAINS', 'extra_name':'💰 The Billionaires Club 💰'},
+        'team5': {'leader_u': 'abcd_fucku', 'extra_name': '👑Imperial🦇'}
     }
     
     for team, data in teams.items():
-        leader_id = data['leader_id']
+        leader_id = data['leader_u']
         extra_name = data.get('extra_name', '')
         leader_button_text = f"{team} {extra_name}"
-        leader_url = f"https://t.me/{leader_id}"
+        leader_url = f"https://t.me/{leader_u}"
         keyboard.append([InlineKeyboardButton(leader_button_text, url=leader_url)])
     
     reply_markup = InlineKeyboardMarkup(keyboard)
