@@ -4,7 +4,7 @@ from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.constants import ParseMode
 from telegram.ext import Application, CommandHandler, ContextTypes, CallbackQueryHandler
 from database import load_data, save_data   
-import uuid
+
 
 # Function to handle the /req command
 async def request_to_join(update: Update, context: ContextTypes.DEFAULT_TYPE):
