@@ -11,6 +11,7 @@ request_status = {}
 
 # Function to handle the /request_to_join command
 async def request_to_join(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    uasync def request_to_join(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = str(update.effective_user.id)
     
     # Check if the user has already initiated a request
@@ -24,7 +25,7 @@ async def request_to_join(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Record the user ID for this request
     request_status[request_id] = {'initiator_id': user_id}
 
-    # Send a message asking the user to specify the team they want to request to join
+    # Create the inline keyboard
     keyboard = [
         [
             InlineKeyboardButton("👁️⃤ Goated Club", callback_data=f"join_{request_id}_team1"),
@@ -38,7 +39,9 @@ async def request_to_join(update: Update, context: ContextTypes.DEFAULT_TYPE):
             InlineKeyboardButton("👑Imperial🦇", callback_data=f"join_{request_id}_team5")
         ]
     ]
-    return InlineKeyboardMarkup(keyboard)
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    # Send a message with the keyboard
     await update.message.reply_text("Please select the team you want to request to join:", reply_markup=reply_markup)
 
 # Function to handle button clicks
@@ -49,7 +52,7 @@ async def button_click(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # Check if the user is authorized to interact with this section
     if user_id != request_status[request_id]['initiator_id']:
-        await query.answer(text="You are not authorized to interact with these buttons.")
+        await query.answer(text="You are not authorized to interact with these buttons.", show_alert=True)
         return
 
     # Process the button click
