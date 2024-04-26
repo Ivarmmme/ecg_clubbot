@@ -6,77 +6,30 @@ from telegram.ext import Application, CommandHandler, ContextTypes, CallbackQuer
 from database import load_data, save_data   
 import uuid
 
-# Define the dictionary at the top of your script to track requests
-request_status = {}
-
-# Function to handle the /request_to_join command
+# Function to handle the /req command
 async def request_to_join(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = str(update.effective_user.id)
+    keyboard = []
+    teams = {
+        'team1': {'leader_id': '6369933143', 'extra_name': '👁️⃤ Goated Club'},
+        'team2': {'leader_id': '7196174452', 'extra_name': '☮ Archangels ☮'},
+        'team3': {'leader_id': '6824897749', 'extra_name': '🦦 Otters club 🦦'},
+        'team4': {'leader_id': '5821282564', 'extra_name':'💰 The Billionaires Club 💰'},
+        'team5': {'leader_id': '5920451104', 'extra_name': '👑Imperial🦇'}
+    }
     
-    # Check if the user has already initiated a request
-    if user_id in request_status:
-        await update.message.reply_text("You have already initiated a request. Please wait for it to be processed.")
-        return
-
-    # Generate a unique ID for the request
-    request_id = str(uuid.uuid4())
+    for team, data in teams.items():
+        leader_id = data['leader_id']
+        extra_name = data.get('extra_name', '')
+        leader_button_text = f"{team} {extra_name}"
+        leader_url = f"https://t.me/{leader_id}"
+        keyboard.append([InlineKeyboardButton(leader_button_text, url=leader_url)])
     
-    # Record the user ID for this request
-    request_status[request_id] = {'initiator_id': user_id}
-
-    # Create the inline keyboard
-    keyboard = [
-        [
-            InlineKeyboardButton("👁️⃤ Goated Club", callback_data=f"join_{request_id}_team1"),
-            InlineKeyboardButton("☮ Archangels ☮", callback_data=f"join_{request_id}_team2")
-        ],
-        [
-            InlineKeyboardButton("🦦 Otters club 🦦", callback_data=f"join_{request_id}_team3"),
-            InlineKeyboardButton("💰 The Billionaires Club 💰", callback_data=f"join_{request_id}_team4")
-        ],
-        [
-            InlineKeyboardButton("👑Imperial🦇", callback_data=f"join_{request_id}_team5")
-        ]
-    ]
     reply_markup = InlineKeyboardMarkup(keyboard)
+    message = await update.message.reply_text("Make your request to corresponding team leaders:", reply_markup=reply_markup)
     
-    # Send a message with the keyboard
-    await update.message.reply_text("Please select the team you want to request to join:", reply_markup=reply_markup)
-    
-    # Send request messages to team leaders
-    for team_id, team_name in enumerate(['Goated Club', 'Archangels', 'Otters Club', 'The Billionaires Club', 'Imperial']):
-        # Assuming team leader IDs are stored in a dictionary called team_leaders
-        team_leader_id = team_leaders.get(f'team{team_id+1}_leader_id')
-        if team_leader_id:
-            message_text = (
-                f"Request to join {team_name}\n"
-                f"User: {update.effective_user.first_name}\n"
-                f"ID: {update.effective_user.id}\n\n"
-                "Do you want to accept this request?"
-            )
-            keyboard = [
-                [
-                    InlineKeyboardButton("Accept", callback_data=f"accept_{request_id}_{team_id+1}"),
-                    InlineKeyboardButton("Reject", callback_data=f"reject_{request_id}_{team_id+1}")
-                ]
-            ]
-            reply_markup = InlineKeyboardMarkup(keyboard)
-            await context.bot.send_message(chat_id=team_leader_id, text=message_text, reply_markup=reply_markup)
-# Function to handle button clicks
-async def button_click(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query = update.callback_query
-    user_id = str(query.from_user.id)
-    request_id, team = query.data.split("_")[1], query.data.split("_")[2]
-
-    # Check if the user is authorized to interact with this section
-    if user_id != request_status[request_id]['initiator_id']:
-        await query.answer(text="You are not authorized to interact with these buttons.", show_alert=True)
-        return
-
-    # Process the button click
-    await query.answer()
-    await query.message.edit_text(f"Your request to join Team {team} has been sent. Please wait for approval.")
-# Function to mass add members to a team
+    # Schedule the deletion of the message after 10 seconds
+    await asyncio.sleep(10)
+    await message.delete()
 
 async def mass_add(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = str(update.effective_user.id)
@@ -355,8 +308,6 @@ def main():
     application.add_handler(CommandHandler("madd", mass_add))
     application.add_handler(CommandHandler("removeall", remove_all))
     application.add_handler(CommandHandler("req", request_to_join))
-    application.add_handler(CallbackQueryHandler(button_click, pattern=r'^join_'))
-    
     application.run_polling()
 
 if __name__ == '__main__':
