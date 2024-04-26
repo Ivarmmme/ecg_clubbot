@@ -9,19 +9,24 @@ import asyncio
 # Function to handle the /req command
 async def request_to_join(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = []
-    teams = {
-        'team1': {'leader_u': 'Dankee0', 'extra_name': '👁️⃤ Goated Club'},
-        'team2': {'leader_u': 'iloveyourmommymore', 'extra_name': '☮ Archangels ☮'},
-        'team3': {'leader_u': 'everydayyhustle', 'extra_name': '🦦 Otters club 🦦'},
-        'team4': {'leader_u': 'GODOFPAINS', 'extra_name':'💰 The Billionaires Club 💰'},
-        'team5': {'leader_u': 'abcd_fucku', 'extra_name': '👑Imperial🦇'}
-    }
+    
+teams = {
+    'team1': {'leader_username': 'Dankee0', 'extra_name': '👁️⃤ Goated Club'},
+    'team2': {'leader_username': 'iloveyourmommymore', 'extra_name': '☮ Archangels ☮'},
+    'team3': {'leader_username': 'everydayyhustle', 'extra_name': '🦦 Otters club 🦦'},
+    'team4': {'leader_username': 'GODOFPAINS', 'extra_name':'💰 The Billionaires Club 💰'},
+    'team5': {'leader_username': 'abcd_fucku', 'extra_name': '👑Imperial🦇'}
+}
+
+# Update the function to generate profile links using usernames
+async def request_to_join(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    keyboard = []
     
     for team, data in teams.items():
-        leader_id = data['leader_u']
+        leader_username = data['leader_username']
         extra_name = data.get('extra_name', '')
         leader_button_text = f"{team} {extra_name}"
-        leader_url = f"https://t.me/{leader_u}"
+        leader_url = f"https://t.me/{leader_username}"
         keyboard.append([InlineKeyboardButton(leader_button_text, url=leader_url)])
     
     reply_markup = InlineKeyboardMarkup(keyboard)
