@@ -5,6 +5,9 @@ from telegram.constants import ParseMode
 from telegram.ext import Application, CommandHandler, ContextTypes, CallbackQueryHandler
 from database import load_data, save_data   
 
+# Define the dictionary at the top of your script to track requests
+request_status = {}
+
 # Function to handle the /request_to_join command
 async def request_to_join(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = str(update.effective_user.id)
