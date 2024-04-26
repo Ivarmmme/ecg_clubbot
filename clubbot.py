@@ -43,7 +43,7 @@ async def button_click(update: Update, context: ContextTypes.DEFAULT_TYPE):
     selected_team = query.data.split('_')[1]
 
     # Check if the user who clicked the button is the same as the user who issued the command
-    if user_id != query.message.chat_id:
+    if user_id != update.effective_user.id:
         # Reply inline with a message indicating that the user is not authorized
         await query.answer(text="You are not authorized to interact with these buttons.")
         return
