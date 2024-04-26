@@ -25,12 +25,20 @@ async def request_to_join(update: Update, context: ContextTypes.DEFAULT_TYPE):
     request_status[request_id] = {'initiator_id': user_id}
 
     # Send a message asking the user to specify the team they want to request to join
-    keyboard = [[InlineKeyboardButton("Team 1", callback_data=f"join_{request_id}_team1"),
-                 InlineKeyboardButton("Team 2", callback_data=f"join_{request_id}_team2"),
-                 InlineKeyboardButton("Team 3", callback_data=f"join_{request_id}_team3"),
-                 InlineKeyboardButton("Team 4", callback_data=f"join_{request_id}_team4"),
-                 InlineKeyboardButton("Team 5", callback_data=f"join_{request_id}_team5")]]
-    reply_markup = InlineKeyboardMarkup(keyboard)
+    keyboard = [
+        [
+            InlineKeyboardButton("👁️⃤ Goated Club", callback_data=f"join_{request_id}_team1"),
+            InlineKeyboardButton("☮ Archangels ☮", callback_data=f"join_{request_id}_team2")
+        ],
+        [
+            InlineKeyboardButton("🦦 Otters club 🦦", callback_data=f"join_{request_id}_team3"),
+            InlineKeyboardButton("💰 The Billionaires Club 💰", callback_data=f"join_{request_id}_team4")
+        ],
+        [
+            InlineKeyboardButton("👑Imperial🦇", callback_data=f"join_{request_id}_team5")
+        ]
+    ]
+    return InlineKeyboardMarkup(keyboard)
     await update.message.reply_text("Please select the team you want to request to join:", reply_markup=reply_markup)
 
 # Function to handle button clicks
