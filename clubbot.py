@@ -11,7 +11,6 @@ request_status = {}
 
 # Function to handle the /request_to_join command
 async def request_to_join(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    async def request_to_join(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = str(update.effective_user.id)
     
     # Check if the user has already initiated a request
