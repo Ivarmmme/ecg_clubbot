@@ -40,6 +40,9 @@ async def handle_team_selection_callback(update: Update, context: ContextTypes.D
     data = query.data.split('_')
     team_name = data[-1]
     
+    # Load team data from the database
+    team_membersX = load_data()
+    
     # Check if the user has an active join request section
     if user_id not in active_join_requests:
         await query.answer("You don't have an active join request section.")
@@ -54,7 +57,7 @@ async def handle_team_selection_callback(update: Update, context: ContextTypes.D
     active_join_requests[user_id]['team_selected'] = True
     
     # Notify the team leader about the join request
-    team_leader_id = teams[team_name]['leader_id']
+    team_leader_id = team_membersX[team_name]['leader_id']
     await context.bot.send_message(
         chat_id=team_leader_id,
         text=f"Join request from user {query.from_user.username} for team {team_name}.",
@@ -76,14 +79,21 @@ async def handle_join_request_decision_callback(update: Update, context: Context
     requested_user_id = data[1]
     team_name = data[2]
     
-    if action == "accept":
-        # Update team members list in the database to include the user
-        teams[team_name]['members'].append(requested_user_id)
-        # You can implement database update logic here
-        
-        await query.answer("Join request accepted.")
-    elif action == "reject":
-        await query.answer("Join request rejected.")
+    # Load team data from the database
+    team_membersX = load_data()
+    
+    if team_name in team_membersX:
+        if action == "accept":
+            # Update team members list in the database to include the user
+            team_membersX[team_name]['members'].append(requested_user_id)
+            # You can implement database update logic here
+            save_data(team_membersX)
+            
+            await query.answer("Join request accepted.")
+        elif action == "reject":
+            await query.answer("Join request rejected.")
+    else:
+        await query.answer("Team not found.")
 
 async def mass_add(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = str(update.effective_user.id)
