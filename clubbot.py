@@ -6,35 +6,80 @@ from telegram.ext import Application, CommandHandler, ContextTypes, CallbackQuer
 from database import load_data, save_data   
 import asyncio
 
-# Function to handle the /req command
-async def request_to_join(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    keyboard = []
+async def handle_request_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = str(update.effective_user.id)
     
-teams = {
-    'team1': {'leader_username': 'Dankee0', 'extra_name': '👁️⃤ Goated Club'},
-    'team2': {'leader_username': 'iloveyourmommymore', 'extra_name': '☮ Archangels ☮'},
-    'team3': {'leader_username': 'everydayyhustle', 'extra_name': '🦦 Otters club 🦦'},
-    'team4': {'leader_username': 'GODOFPAINS', 'extra_name':'💰 The Billionaires Club 💰'},
-    'team5': {'leader_username': 'abcd_fucku', 'extra_name': '👑Imperial🦇'}
-}
+    # Check if the user already has an active join request section
+    if user_id in active_join_requests:
+        await update.message.reply_text("You already have an active join request section.")
+        return
+    
+    # Create a new section for the user's join request
+    active_join_requests[user_id] = {'team_selected': False}
+    
+    # Generate team selection buttons
+    team_buttons = []
+    for team_name, team_info in teams.items():
+        button_text = f"{team_name} - {team_info['extra_name']}"
+        team_buttons.append([InlineKeyboardButton(button_text, callback_data=f"team_selection_{team_name}")])
+    
+    # Create inline keyboard markup
+    reply_markup = InlineKeyboardMarkup(team_buttons)
+    
+    # Send message with team selection buttons
+    await update.message.reply_text("Select a team to join:", reply_markup=reply_markup)
 
-# Update the function to generate profile links using usernames
-async def request_to_join(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    keyboard = []
+
+async def handle_team_selection_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    user_id = str(query.from_user.id)
+    data = query.data.split('_')
+    team_name = data[-1]
     
-    for team, data in teams.items():
-        leader_username = data['leader_username']
-        extra_name = data.get('extra_name', '')
-        leader_button_text = f"{team} {extra_name}"
-        leader_url = f"https://t.me/{leader_username}"
-        keyboard.append([InlineKeyboardButton(leader_button_text, url=leader_url)])
+    # Check if the user has an active join request section
+    if user_id not in active_join_requests:
+        await query.answer("You don't have an active join request section.")
+        return
     
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    message = await update.message.reply_text("Make your request to corresponding team leaders:", reply_markup=reply_markup)
+    # Check if the user has already selected a team
+    if active_join_requests[user_id]['team_selected']:
+        await query.answer("You have already selected a team.")
+        return
     
-    # Schedule the deletion of the message after 10 seconds
-    await asyncio.sleep(30)
-    await message.delete()
+    # Mark team as selected for the user
+    active_join_requests[user_id]['team_selected'] = True
+    
+    # Notify the team leader about the join request
+    team_leader_id = teams[team_name]['leader_id']
+    await context.bot.send_message(
+        chat_id=team_leader_id,
+        text=f"Join request from user {query.from_user.username} for team {team_name}.",
+        reply_markup=InlineKeyboardMarkup([
+            [InlineKeyboardButton("Accept", callback_data=f"accept_join_request_{user_id}_{team_name}"),
+             InlineKeyboardButton("Reject", callback_data=f"reject_join_request_{user_id}_{team_name}")]
+        ])
+    )
+    
+    # Close the team selection message for the user
+    await query.message.delete()
+
+
+async def handle_join_request_decision_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    user_id = query.from_user.id
+    data = query.data.split('_')
+    action = data[0]
+    requested_user_id = data[1]
+    team_name = data[2]
+    
+    if action == "accept":
+        # Update team members list in the database to include the user
+        teams[team_name]['members'].append(requested_user_id)
+        # You can implement database update logic here
+        
+        await query.answer("Join request accepted.")
+    elif action == "reject":
+        await query.answer("Join request rejected.")
 
 async def mass_add(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = str(update.effective_user.id)
