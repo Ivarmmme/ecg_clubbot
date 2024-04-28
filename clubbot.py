@@ -70,8 +70,7 @@ await context.bot.send_message(
 
     
     # Close the team selection message for the user
-    await query.message.delete()
-
+await query.message.delete()
 
 async def handle_join_request_decision_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
