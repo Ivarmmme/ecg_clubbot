@@ -74,28 +74,21 @@ async def handle_team_selection_callback(update: Update, context: ContextTypes.D
 
 async def handle_join_request_decision_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    user_id = query.from_user.id
-    data = query.data.split('_')
-    action = data[0]
-    requested_user_id = data[1]
-    team_name = data[2]
-    
-    # Load team data from the database
-    team_membersX = load_data()
-    
-    if team_name in team_membersX:
-        if action == "accept":
-            # Update team members list in the database to include the user
-            team_membersX[team_name]['members'].append(requested_user_id)
-            # You can implement database update logic here
-            save_data(team_membersX)
-            
-            await query.answer("Join request accepted.")
-        elif action == "reject":
-            await query.answer("Join request rejected.")
-    else:
-        await query.answer("Team not found.")
+    user_id, action, team_name = query.data.split('_')[1:]
 
+    # Load the team members data from the database
+    team_membersX = load_data()
+
+    if action == "accept":
+        # Call the add_member function to add the user to the team
+        await add_member(update, context, team_name, user_id)
+        await query.answer("Join request accepted!")
+    else:
+        await query.answer("Join request rejected.")
+
+    # Close the join request decision message for the team leader
+    await query.message.delete()
+    
 async def mass_add(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = str(update.effective_user.id)
     text = update.message.text.split()
