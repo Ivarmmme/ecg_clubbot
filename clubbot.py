@@ -85,7 +85,7 @@ async def handle_join_request_decision_callback(update: Update, context: Context
     # Get the ID of the leader who clicked the button
     leader_id = query.from_user.id
 
-    # Find out which team the leader belongs to
+    # Check if the leader is associated with any team
     leader_team = None
     for team, info in team_membersX.items():
         if info['leader_id'] == leader_id:
@@ -93,23 +93,14 @@ async def handle_join_request_decision_callback(update: Update, context: Context
             break
 
     if leader_team:
-        if team_name == leader_team:
-            if action == "accept":
-                # Add the user to the team
-                team_membersX[team_name]['members'].append(requested_user_id)
-                # Save the updated team data to the database
-                save_data(team_membersX)
-                await query.answer("Join request accepted.")
-            elif action == "reject":
-                # You can add rejection logic here if needed
-                await query.answer("Join request rejected.")
-        else:
-            # Notify if the leader is not from the specified team
-            await query.answer("You can only make decisions for your own team.")
+        # Add the user to the corresponding team
+        team_membersX[leader_team]['members'].append(requested_user_id)
+        # Save the updated team data to the database
+        save_data(team_membersX)
+        await query.answer("Join request accepted.")
     else:
         # Notify if the leader is not found or not assigned to any team
         await query.answer("You are not a leader of any team.")
-
 
 async def mass_add(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = str(update.effective_user.id)
