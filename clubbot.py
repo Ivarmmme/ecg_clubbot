@@ -91,10 +91,15 @@ async def handle_join_request_decision_callback(update: Update, context: Context
             save_data(team_membersX)
             
             await query.answer("Join request accepted.")
+            # Notify the user about the decision
+            await context.bot.send_message(requested_user_id, f"Your join request for team {team_name} has been accepted.")
         elif action == "reject":
             await query.answer("Join request rejected.")
+            # Notify the user about the decision
+            await context.bot.send_message(requested_user_id, f"Your join request for team {team_name} has been rejected.")
     else:
         await query.answer("Team not found.")
+
     
 async def mass_add(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = str(update.effective_user.id)
