@@ -74,32 +74,18 @@ async def handle_team_selection_callback(update: Update, context: ContextTypes.D
 
 async def handle_join_request_decision_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    data = query.data.split('_')
-    action = data[0]
-    requested_user_id = data[1]
+    await query.answer()
 
-    # Get the ID of the leader who clicked the button
+    # Extract user ID of the leader who clicked the button
     leader_id = query.from_user.id
 
-    # Load team data from the database
-    team_membersX = load_data()
+    # Debug: Send back the ID to the chat to verify
+    await context.bot.send_message(
+        chat_id=query.message.chat_id,
+        text=f"The ID of the leader who clicked the button is: {leader_id}"
+    )
 
-    # Find the team for which this leader is responsible
-    leader_team_name = None
-    for team_name, team_info in team_membersX.items():
-        if team_info['leader_id'] == leader_id:
-            leader_team_name = team_name
-            break
-
-    if leader_team_name:
-        # Add the user to the leader's team
-        team_membersX[leader_team_name]['members'].append(requested_user_id)
-        # Save the updated team data to the database
-        save_data(team_membersX)
-        await query.answer("Join request accepted.")
-    else:
-        # Notify if the user is not recognized as a leader of any team
-        await query.answer("You are not recognized as a leader of any team.")
+    # You can continue with processing the join request here...
 
 async def mass_add(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = str(update.effective_user.id)
