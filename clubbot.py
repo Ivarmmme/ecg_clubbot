@@ -85,22 +85,14 @@ async def handle_join_request_decision_callback(update: Update, context: Context
     
     if team_name in team_membersX:
         if action == "accept":
-            # Update team members list in the database to include the user
+            # Add the user to the team
             team_membersX[team_name]['members'].append(requested_user_id)
-            # You can implement database update logic here
             save_data(team_membersX)
-            
             await query.answer("Join request accepted.")
-            # Notify the user about the decision
-            await context.bot.send_message(requested_user_id, f"Your join request for team {team_name} has been accepted.")
         elif action == "reject":
             await query.answer("Join request rejected.")
-            # Notify the user about the decision
-            await context.bot.send_message(requested_user_id, f"Your join request for team {team_name} has been rejected.")
-    else:
-        await query.answer("Team not found.")
+    # No need for an else statement here
 
-    
 async def mass_add(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = str(update.effective_user.id)
     text = update.message.text.split()
