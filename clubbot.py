@@ -57,20 +57,20 @@ async def handle_team_selection_callback(update: Update, context: ContextTypes.D
     active_join_requests[user_id]['team_selected'] = True
     
     # Notify the team leader about the join request
-user = query.from_user
-user_mention = f"{user.first_name} {user.last_name if user.last_name else ''} (ID: {user.id})"
-await context.bot.send_message(
-    chat_id=team_leader_id,
-    text=f"Join request from {user_mention} for team {team_name}.",
-    reply_markup=InlineKeyboardMarkup([
-        [InlineKeyboardButton("Accept", callback_data=f"accept_join_request_{user_id}_{team_name}"),
-         InlineKeyboardButton("Reject", callback_data=f"reject_join_request_{user_id}_{team_name}")]
-    ])
-)
-
+    team_leader_id = team_membersX[team_name]['leader_id']
+    user = query.from_user
+    user_mention = f"{user.first_name} {user.last_name if user.last_name else ''} (ID: {user.id})"
+    await context.bot.send_message(
+        chat_id=team_leader_id,
+        text=f"Join request from {user_mention} for team {team_name}.",
+        reply_markup=InlineKeyboardMarkup([
+            [InlineKeyboardButton("Accept", callback_data=f"accept_join_request_{user_id}_{team_name}"),
+             InlineKeyboardButton("Reject", callback_data=f"reject_join_request_{user_id}_{team_name}")]
+        ])
+    )
     
     # Close the team selection message for the user
-await query.message.delete()
+    await query.message.delete()
 
 async def handle_join_request_decision_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
