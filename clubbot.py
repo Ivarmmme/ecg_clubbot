@@ -6,6 +6,8 @@ from telegram.ext import Application, CommandHandler, ContextTypes, CallbackQuer
 from database import load_data, save_data   
 from typing import Dict
 
+active_join_requests = {}
+
 async def handle_request_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = str(update.effective_user.id)
     
