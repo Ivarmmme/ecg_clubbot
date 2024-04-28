@@ -82,25 +82,31 @@ async def handle_join_request_decision_callback(update: Update, context: Context
     # Load team data from the database
     team_membersX = load_data()
 
-    # Find the team for which this leader is responsible
-    leader_team = None
-    for team_name, team_info in team_membersX.items():
-        if team_info['leader_id'] == leader_id:
-            leader_team = team_name
-            break
+    # Check database accessibility by trying to retrieve a team name
+    if not team_membersX:
+        await context.bot.send_message(
+            chat_id=query.message.chat_id,
+            text="Error: Unable to access the database."
+        )
+        return
 
-    if leader_team:
-        response_message = f"Leader ID: {leader_id} belongs to the team: {leader_team}."
-    else:
-        response_message = f"Leader ID: {leader_id} does not belong to any team."
-
-    # Send the response message back to the chat
+    # Send the user ID of the person who clicked the button
     await context.bot.send_message(
         chat_id=query.message.chat_id,
-        text=response_message
+        text=f"User ID of the person who clicked the button: {leader_id}"
+    )
+
+    # Prepare a list of leaders from each team
+    leaders_list = "\n".join([f"Team: {team_name}, Leader ID: {team_info['leader_id']}" for team_name, team_info in team_membersX.items()])
+
+    # Send the list of leaders from each team
+    await context.bot.send_message(
+        chat_id=query.message.chat_id,
+        text=f"List of leaders from each team:\n{leaders_list}"
     )
 
     # Continue processing the join request here...
+
 async def mass_add(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = str(update.effective_user.id)
     text = update.message.text.split()
