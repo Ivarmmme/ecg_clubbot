@@ -79,14 +79,28 @@ async def handle_join_request_decision_callback(update: Update, context: Context
     # Extract user ID of the leader who clicked the button
     leader_id = query.from_user.id
 
-    # Debug: Send back the ID to the chat to verify
+    # Load team data from the database
+    team_membersX = load_data()
+
+    # Find the team for which this leader is responsible
+    leader_team = None
+    for team_name, team_info in team_membersX.items():
+        if team_info['leader_id'] == leader_id:
+            leader_team = team_name
+            break
+
+    if leader_team:
+        response_message = f"Leader ID: {leader_id} belongs to the team: {leader_team}."
+    else:
+        response_message = f"Leader ID: {leader_id} does not belong to any team."
+
+    # Send the response message back to the chat
     await context.bot.send_message(
         chat_id=query.message.chat_id,
-        text=f"The ID of the leader who clicked the button is: {leader_id}"
+        text=response_message
     )
 
-    # You can continue with processing the join request here...
-
+    # Continue processing the join request here...
 async def mass_add(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = str(update.effective_user.id)
     text = update.message.text.split()
