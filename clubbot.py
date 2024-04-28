@@ -72,6 +72,8 @@ async def handle_team_selection_callback(update: Update, context: ContextTypes.D
     # Close the team selection message for the user
     await query.message.delete()
 
+active_join_requests = {}  # This dictionary tracks the leader and join request status
+
 async def handle_join_request_decision_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     data = query.data.split('_')
@@ -81,13 +83,13 @@ async def handle_join_request_decision_callback(update: Update, context: Context
     # Extract user ID of the leader who clicked the button
     leader_id = query.from_user.id
 
-    # Store the ID temporarily for validation
-    context.user_data['requested_leader_id'] = leader_id
+    # Store the leader ID temporarily for validation
+    active_join_requests[requested_user_id] = leader_id
 
     # Load team data from the database
     team_membersX = load_data()
 
-    # Find the team for which this leader is responsible
+    # Find if the leader who clicked is authorized for any team
     leader_team_name = None
     for team_name, team_info in team_membersX.items():
         if team_info['leader_id'] == leader_id:
@@ -95,20 +97,22 @@ async def handle_join_request_decision_callback(update: Update, context: Context
             break
 
     if leader_team_name:
-        # Add the user to the leader's team
+        # Add the requested user to the leader's team
         team_membersX[leader_team_name]['members'].append(requested_user_id)
         # Save the updated team data to the database
         save_data(team_membersX)
         await query.answer("Join request accepted.")
     else:
-        # Deny the request and notify the user
-        await context.bot.send_message(
-            chat_id=query.message.chat_id,
-            text="You are not recognized as a leader of any team."
-        )
-
-    # Continue processing the join request here...
-
+        # If the leader ID doesn't match, check if any other leader clicked the button
+        if leader_id in [info['leader_id'] for info in team_membersX.values()]:
+            # Find the correct team
+            correct_team = next((team_name for team_name, info in team_membersX.items() if info['leader_id'] == leader_id), None)
+            if correct_team:
+                team_membersX[correct_team]['members'].append(requested_user_id)
+                save_data(team_membersX)
+                await query.answer("Join request accepted.")
+            else:
+                await query.answer("No matching team found for this leader.")
 
 async def mass_add(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = str(update.effective_user.id)
