@@ -357,7 +357,11 @@ def main():
     application.add_handler(CommandHandler("team5", team_list))
     application.add_handler(CommandHandler("madd", mass_add))
     application.add_handler(CommandHandler("removeall", remove_all))
-    application.add_handler(CommandHandler("req", request_to_join))
+    application.add_handler(CommandHandler("request", handle_request_command))
+    
+    # Add callback query handlers
+    application.add_handler(CallbackQueryHandler(handle_team_selection_callback, pattern=r'^team_selection_'))
+    application.add_handler(CallbackQueryHandler(handle_join_request_decision_callback, pattern=r'^(accept_join_request_|reject_join_request_)'))
     application.run_polling()
 
 if __name__ == '__main__':
