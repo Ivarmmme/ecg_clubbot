@@ -72,7 +72,35 @@ async def handle_team_selection_callback(update: Update, context: ContextTypes.D
     # Close the team selection message for the user
     await query.message.delete()
 
-even if they are not currently leading any team.
+async def handle_join_request_decision_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    data = query.data.split('_')
+    action = data[0]
+    requested_user_id = data[1]
+
+    # Get the ID of the leader who clicked the button
+    leader_id = query.from_user.id
+
+    # Load team data from the database
+    team_membersX = load_data()
+
+    # Find the team for which this leader is responsible
+    leader_team_name = None
+    for team_name, team_info in team_membersX.items():
+        if team_info['leader_id'] == leader_id:
+            leader_team_name = team_name
+            break
+
+    if leader_team_name:
+        # Add the user to the leader's team
+        team_membersX[leader_team_name]['members'].append(requested_user_id)
+        # Save the updated team data to the database
+        save_data(team_membersX)
+        await query.answer("Join request accepted.")
+    else:
+        # Notify if the user is not recognized as a leader of any team
+        await query.answer("You are not recognized as a leader of any team.")
+
 async def mass_add(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = str(update.effective_user.id)
     text = update.message.text.split()
