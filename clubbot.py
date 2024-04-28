@@ -12,7 +12,7 @@ async def handle_request_command(update: Update, context: ContextTypes.DEFAULT_T
     user_id = str(update.effective_user.id)
     
     # Load team data from the database
-    team_membersXX = load_data()
+    team_membersX = load_data()
     
     # Check if the user already has an active join request section
     if user_id in active_join_requests:
@@ -24,7 +24,7 @@ async def handle_request_command(update: Update, context: ContextTypes.DEFAULT_T
     
     # Generate team selection buttons
     team_buttons = []
-    for team_name, team_info in team_membersXX.items():
+    for team_name, team_info in team_membersX.items():
         button_text = f"{team_name} - {team_info.get('extra_name', '')}"
         team_buttons.append([InlineKeyboardButton(button_text, callback_data=f"team_selection_{team_name}")])
     
@@ -74,20 +74,27 @@ async def handle_team_selection_callback(update: Update, context: ContextTypes.D
 
 async def handle_join_request_decision_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    user_id, action, team_name = query.data.split('_')[1:]
-
-    # Load the team members data from the database
+    user_id = query.from_user.id
+    data = query.data.split('_')
+    action = data[0]
+    requested_user_id = data[1]
+    team_name = data[2]
+    
+    # Load team data from the database
     team_membersX = load_data()
-
-    if action == "accept":
-        # Call the add_member function to add the user to the team
-        await add_member(update, context, team_name, user_id)
-        await query.answer("Join request accepted!")
+    
+    if team_name in team_membersX:
+        if action == "accept":
+            # Update team members list in the database to include the user
+            team_membersX[team_name]['members'].append(requested_user_id)
+            # You can implement database update logic here
+            save_data(team_membersX)
+            
+            await query.answer("Join request accepted.")
+        elif action == "reject":
+            await query.answer("Join request rejected.")
     else:
-        await query.answer("Join request rejected.")
-
-    # Close the join request decision message for the team leader
-    await query.message.delete()
+        await query.answer("Team not found.")
     
 async def mass_add(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = str(update.effective_user.id)
@@ -98,8 +105,8 @@ async def mass_add(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     # Find which team the user is a leader of
     team_name = None
-    team_membersXX = load_data()  # You'll need to import load_data from your main script
-    for team, data in team_membersXX.items():
+    team_membersX = load_data()  # You'll need to import load_data from your main script
+    for team, data in team_membersX.items():
         if data['leader_id'] == user_id:
             team_name = team
             break
@@ -110,7 +117,7 @@ async def mass_add(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     # Check if the team has reached its member limit
     max_members_per_team = 11  # Set your desired limit here
-    current_members_count = len(team_membersXX[team_name]['members'])
+    current_members_count = len(team_membersX[team_name]['members'])
     if current_members_count >= max_members_per_team:
         await update.message.reply_text(f"Sorry, {team_name} has reached the maximum member limit.")
         return
@@ -128,7 +135,7 @@ async def mass_add(update: Update, context: ContextTypes.DEFAULT_TYPE):
             break
         
         # Check if the user is a leader of any team
-        for data in team_membersXX.values():
+        for data in team_membersX.values():
             if member_id == int(data['leader_id']):
                 await update.message.reply_text(f"Cannot add user {member_id}: a leader cannot be added as a member.")
                 cancel_command = True
@@ -138,7 +145,7 @@ async def mass_add(update: Update, context: ContextTypes.DEFAULT_TYPE):
             break
         
         # Check if the user is a member of any other team
-        for other_team, other_data in team_membersXX.items():
+        for other_team, other_data in team_membersX.items():
             if str(member_id) in other_data['members']:
                 await update.message.reply_text(f"Cannot add user {member_id}: already a member of another team.")
                 cancel_command = True
@@ -148,7 +155,7 @@ async def mass_add(update: Update, context: ContextTypes.DEFAULT_TYPE):
             break
         
         # Check if the user is already a member of the team
-        if str(member_id) in team_membersXX[team_name]['members']:
+        if str(member_id) in team_membersX[team_name]['members']:
             await update.message.reply_text(f"Cannot add user {member_id}: already a member of this team.")
             cancel_command = True
             break
@@ -160,9 +167,9 @@ async def mass_add(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     # If all checks passed, add the users to the team
     for member_id in text[1:]:
-        team_membersXX[team_name]['members'].append(str(member_id))
+        team_membersX[team_name]['members'].append(str(member_id))
     
-    save_data(team_membersXX)
+    save_data(team_membersX)
     await update.message.reply_text(f"Members have been added to {team_name}.")
     
 # function to removeall members from team
@@ -194,11 +201,11 @@ async def remove_all(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # Function to allow a member to leave a team
 async def leave_team(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = str(update.effective_user.id)
-    team_membersXX = load_data()
+    team_membersX = load_data()
 
     left_team = None
     # Check all teams to see if the user is a member and not the leader
-    for team, data in team_membersXX.items():
+    for team, data in team_membersX.items():
         if data['leader_id'] == user_id:
             await update.message.reply_text("You are the leader of the team and cannot leave using this command.")
             return
@@ -209,7 +216,7 @@ async def leave_team(update: Update, context: ContextTypes.DEFAULT_TYPE):
             break
 
     if left_team:
-        save_data(team_membersXX)
+        save_data(team_membersX)
         await update.message.reply_text(f"You have left {left_team}.")
     else:
         await update.message.reply_text("You are not a member of any team.")
@@ -224,8 +231,8 @@ async def add_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     # Find which team the user is a leader of
     team_name = None
-    team_membersXX = load_data()
-    for team, data in team_membersXX.items():
+    team_membersX = load_data()
+    for team, data in team_membersX.items():
         if data['leader_id'] == user_id:
             team_name = team
             break
@@ -244,7 +251,7 @@ async def add_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # Check if the team has reached its member limit
     max_members_per_team = 11  # Set your desired limit here
-    current_members_count = len(team_membersXX[team_name]['members'])
+    current_members_count = len(team_membersX[team_name]['members'])
     if current_members_count >= max_members_per_team:
         await update.message.reply_text(f"Sorry, {team_name} has reached the maximum member limit.")
         return
@@ -260,7 +267,7 @@ async def add_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     
     # Check if the user being added is already a leader or a member of another team
-    for team, data in team_membersXX.items():
+    for team, data in team_membersX.items():
         if member_id == int(data['leader_id']):
             await update.message.reply_text("You cannot add another leader to your team.")
             return
@@ -269,20 +276,20 @@ async def add_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
             return
     
     # Check if the user is already a member of the team
-    if str(member_id) in team_membersXX[team_name]['members']:
+    if str(member_id) in team_membersX[team_name]['members']:
         await update.message.reply_text("This user is already a member of your team.")
         return
     
     # Check if the user is a member of any other team
-    for team, data in team_membersXX.items():
+    for team, data in team_membersX.items():
         if str(member_id) in data['members']:
             await update.message.reply_text("This user is already a member of another team.")
             return
     
     # Add the user specified in the command to the team
-    team_membersXX[team_name]['members'].append(str(member_id))
+    team_membersX[team_name]['members'].append(str(member_id))
     await update.message.reply_text(f"Member {member_id} has been added to {team_name}.")
-    save_data(team_membersXX)
+    save_data(team_membersX)
 
 # Function to remove a member from a team
 async def remove_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -294,8 +301,8 @@ async def remove_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     # Find which team the user is a leader of
     team_name = None
-    team_membersXX = load_data()
-    for team, data in team_membersXX.items():
+    team_membersX = load_data()
+    for team, data in team_membersX.items():
         if data['leader_id'] == user_id:
             team_name = team
             break
@@ -306,10 +313,10 @@ async def remove_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
         
     # Remove the user specified in the command from the team
     member_id = text[1]
-    if member_id in team_membersXX[team_name]['members']:
-        team_membersXX[team_name]['members'].remove(member_id)
+    if member_id in team_membersX[team_name]['members']:
+        team_membersX[team_name]['members'].remove(member_id)
         await update.message.reply_text(f"Member {member_id} has been removed from {team_name}.")
-        save_data(team_membersXX)
+        save_data(team_membersX)
     else:
         await update.message.reply_text(f"Member {member_id} is not in {team_name}.")
 
@@ -317,9 +324,9 @@ async def remove_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def team_list(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         team_name = context.args[0] if context.args else update.message.text[1:]
-        team_membersXX = load_data()
-        if team_name in team_membersXX:
-            team_info = team_membersXX[team_name]
+        team_membersX = load_data()
+        if team_name in team_membersX:
+            team_info = team_membersX[team_name]
             leader_id = team_info['leader_id']
             leader_mention = None
             leader = await context.bot.get_chat_member(update.effective_chat.id, leader_id)
