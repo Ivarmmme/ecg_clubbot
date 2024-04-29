@@ -84,7 +84,17 @@ async def handle_join_request_decision_callback(update: Update, context: Context
     leader_id = query.from_user.id
     
     # Extract the requested user ID from the callback data
-    requested_user_id = query.data.split('_')[2]
+    callback_data = query.data.split('_')
+    if len(callback_data) < 3:
+        await query.answer("Invalid callback data.")
+        return
+    
+    requested_user_id_str = callback_data[2]
+    try:
+        requested_user_id = int(requested_user_id_str)
+    except ValueError:
+        await query.answer("Invalid user ID.")
+        return
 
     # Load team data from the database
     team_membersX = load_data()
@@ -96,7 +106,7 @@ async def handle_join_request_decision_callback(update: Update, context: Context
     leader_ids = [int(leader_id) for leader_id in leader_ids]
 
     # Find the closest matching leader ID
-    closest_leader_id = min(leader_ids, key=lambda x: abs(x - int(requested_user_id)))
+    closest_leader_id = min(leader_ids, key=lambda x: abs(x - requested_user_id))
 
     # Find the team associated with the closest matching leader ID
     team_name = None
@@ -107,13 +117,13 @@ async def handle_join_request_decision_callback(update: Update, context: Context
 
     if team_name:
         # Add the requested user to the corresponding team
-        team_membersX[team_name]['members'].append(requested_user_id)
+        team_membersX[team_name]['members'].append(str(requested_user_id))  # Ensure requested_user_id is converted to string
         # Save the updated team data to the database
         save_data(team_membersX)
         await query.answer("Join request accepted.")
     else:
         await query.answer("No matching team found for this leader.")
-
+        
 async def mass_add(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = str(update.effective_user.id)
     text = update.message.text.split()
