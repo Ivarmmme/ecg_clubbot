@@ -80,34 +80,34 @@ async def handle_join_request_decision_callback(update: Update, context: Context
     action = data[0]
     requested_user_id = data[1]
 
-    # Get the ID of the user who clicked the button
-    clicking_user_id = query.from_user.id
+    # Extract user ID of the leader who clicked the button
+    leader_id = query.from_user.id
+
+    # Store the user ID who clicked the button temporarily
+    context.user_data['requested_leader_id'] = leader_id
 
     # Load team data from the database
     team_membersX = load_data()
 
-    # Extract all leader IDs from the team data
-    all_leader_ids = {info['leader_id'] for info in team_membersX.values()}
+    # Get all leader IDs
+    leader_ids = [team_info['leader_id'] for team_info in team_membersX.values()]
 
-    # Check if the clicking user ID is one of the leader IDs
-    if clicking_user_id in all_leader_ids:
-        # Determine the team of the leader who clicked
-        leader_team_name = None
-        for team_name, team_info in team_membersX.items():
-            if team_info['leader_id'] == clicking_user_id:
-                leader_team_name = team_name
-                break
+    # Find the most matching leader ID
+    closest_leader_id = find_closest_leader(leader_id, leader_ids)
 
-        if leader_team_name:
-            # Add the requested user to the leader's team
-            team_membersX[leader_team_name]['members'].append(requested_user_id)
-            # Save the updated team data to the database
-            save_data(team_membersX)
-            await query.answer("Join request accepted.")
-        else:
-            await query.answer("You are a leader, but no specific team found for you.")
-    else:
-        await query.answer("You are not recognized as a leader of any team.")
+    # Send the most matching leader ID back to the chat
+    await context.bot.send_message(
+        chat_id=query.message.chat_id,
+        text=f"The closest matching leader ID: {closest_leader_id}"
+    )
+
+    # Continue processing the join request here...
+
+def find_closest_leader(user_id, leader_ids):
+    # Logic to find the closest matching leader ID
+    # For simplicity, let's assume the closest matching leader is the one with the smallest absolute difference in IDs
+    closest_leader_id = min(leader_ids, key=lambda x: abs(x - user_id))
+    return closest_leader_id
 
 
 async def mass_add(update: Update, context: ContextTypes.DEFAULT_TYPE):
