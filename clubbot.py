@@ -3,14 +3,14 @@ from telegram.error import BadRequest
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.constants import ParseMode
 from telegram.ext import Application, CommandHandler, ContextTypes, CallbackQueryHandler, MessageHandler, filters
-from database import load_data, save_data, collection
+from database import load_data, save_data
 from functools import partial
 
-async def track_messages(update: Update, context: ContextTypes.DEFAULT_TYPE, collection):
+async def track_messages(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = str(update.effective_user.id)
     
     # Load team data and message counts from the database
-    team_membersX = load_data(collection)
+    team_membersX = load_data()
     message_counts = team_membersX.get("message_counts", {})
     
     # Identify the team of the member who sent the message
@@ -28,7 +28,7 @@ async def track_messages(update: Update, context: ContextTypes.DEFAULT_TYPE, col
 
 async def show_ranks(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Load message counts from the database
-    message_counts = collection.find_one({}).get("message_counts", {}) if collection.find_one({}) else {}
+    message_counts = load_data().get("message_counts", {})
 
     # Sort teams by message count in descending order
     sorted_teams = sorted(message_counts.items(), key=lambda x: x[1], reverse=True)
@@ -40,7 +40,6 @@ async def show_ranks(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # Send the response
     await update.message.reply_text(response)
-    
             
 active_join_requests = {}
 
@@ -387,7 +386,7 @@ def main():
     # Add callback query handlers
     application.add_handler(CallbackQueryHandler(handle_team_selection_callback, pattern=r'^team_selection_'))
     application.add_handler(CommandHandler("ranks", show_ranks))
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, lambda update, context: track_messages(update, context, collection)))
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, track_messages))
     
     application.run_polling()
 
