@@ -387,7 +387,7 @@ def main():
     # Add callback query handlers
     application.add_handler(CallbackQueryHandler(handle_team_selection_callback, pattern=r'^team_selection_'))
     application.add_handler(CommandHandler("ranks", show_ranks))
-    application.add_handler(MessageHandler(filters.Text & ~filters.command, track_messages))
+    application.add_handler(MessageHandler(filters.Text & ~filters.Command, track_messages))
     
     application.run_polling()
 
