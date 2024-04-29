@@ -22,70 +22,22 @@ db = client[DB_NAME]
 collection = db[COLLECTION_NAME]
 
 # Function to save team members data to MongoDB
-def save_data(team_membersX, message_counts):
-    data_to_save = {
-        "team_membersX": team_membersX,
-        "message_counts": message_counts
-    }
-    collection.replace_one({}, data_to_save, upsert=True)
+def save_data(team_members):
+    collection.update_one({}, {"$set": {"team_membersX": team_members}}, upsert=True)
 
 # Function to load team members data from MongoDB
 def load_data():
     data = collection.find_one({})
     if data:
-        return {
-            "team_membersX": data.get("team_membersX", {}),
-            "message_counts": data.get("message_counts", {})
-        }
+        return data.get("team_membersX", {})
     else:
         return {
-            "team_membersX": {
-                'team1': {'leader_id': '6369933143', 'members': [], 'extra_name': '👁️⃤ Goated Club'},
-                'team2': {'leader_id': '7196174452', 'members': [], 'extra_name': '☮ Archangels ☮'},
-                'team3': {'leader_id': '6824897749', 'members': [], 'extra_name': '🦦 Otters club 🦦'},
-                'team4': {'leader_id': '5821282564', 'members': [], 'extra_name': '💰 The Billionaires Club 💰'},
-                'team5': {'leader_id': '5920451104', 'members': [], 'extra_name': '👑Imperial🦇'}
-            },
-            "message_counts": {}
-        }
-
-        
-async def track_messages(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = str(update.effective_user.id)
-    
-    # Load team data and message counts from the database
-    team_membersX = load_data()  # Define the load_data function to load team data from the database
-    message_counts = team_membersX.get("message_counts", {})
-    
-    # Update message counts for all teams the user is a member of
-    for team_name, team_info in team_membersX.items():
-        if user_id == team_info.get('leader_id'):
-            # Update the message count for the team leader
-            message_counts[team_name] = message_counts.get(team_name, {}).get("leader", 0) + 1
-        elif user_id in team_info.get('members', []):
-            # Update the message count for team members
-            message_counts[team_name] = message_counts.get(team_name, {}).get("members", 0) + 1
-    
-    # Save updated message counts to the database
-    save_data(team_membersX, message_counts)  # Define the save_data function to save updated data to the database
-
-async def show_ranks(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    data = load_data()
-    print("Data from load_data():", data)
-    team_membersX, message_counts = data
-
-    # Sort teams by message count in descending order
-    sorted_teams = sorted(message_counts.items(), key=lambda x: x[1], reverse=True)
-
-    # Prepare the response
-    response = "Message Ranks:\n"
-    for rank, (team_name, count) in enumerate(sorted_teams, start=1):
-        response += f"{rank}. {team_name} - {count} messages\n"
-
-    # Send the response
-    await update.message.reply_text(response)
-
-
+            'team1': {'leader_id': '6369933143', 'members': [], 'extra_name': '👁️⃤ Goated Club'},
+            'team2': {'leader_id': '7196174452', 'members': [], 'extra_name': '☮ Archangels ☮'},
+            'team3': {'leader_id': '6824897749', 'members': [], 'extra_name': '🦦 Otters club 🦦'},
+            'team4': {'leader_id': '5821282564', 'members': [], 'extra_name':'💰 The Billionaires Club 💰'},
+            'team5': {'leader_id': '5920451104', 'members': [], 'extra_name': '👑Imperial🦇'}
+    }
     
 active_join_requests = {}
 
@@ -431,8 +383,6 @@ def main():
     
     # Add callback query handlers
     application.add_handler(CallbackQueryHandler(handle_team_selection_callback, pattern=r'^team_selection_'))
-    application.add_handler(CommandHandler("ranks", show_ranks))
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, track_messages))
     
     application.run_polling()
 
