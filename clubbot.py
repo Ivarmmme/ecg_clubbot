@@ -4,7 +4,6 @@ from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.constants import ParseMode
 from telegram.ext import Application, CommandHandler, ContextTypes, CallbackQueryHandler
 from database import load_data, save_data   
-from typing import Dict
 
 active_join_requests = {}
 
@@ -33,8 +32,7 @@ async def handle_request_command(update: Update, context: ContextTypes.DEFAULT_T
     
     # Send message with team selection buttons
     await update.message.reply_text("Select a team to join:", reply_markup=reply_markup)
-
-
+        
 async def handle_team_selection_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     user_id = str(query.from_user.id)
@@ -60,93 +58,23 @@ async def handle_team_selection_callback(update: Update, context: ContextTypes.D
     # Notify the team leader about the join request
     team_leader_id = team_membersX[team_name]['leader_id']
     user = query.from_user
-    user_mention = f"{user.first_name} {user.last_name if user.last_name else ''} (ID: {user.id})"
     
-    # Include the requested user ID in the message
-    requested_user_id = data[2]
+    # Extract user's full name
+    user_full_name = f"{user.first_name} {user.last_name if user.last_name else ''}"
     
-    await context.bot.send_message(
-        chat_id=team_leader_id,
-        text=f"Join request from {user_mention} for team {team_name}. Requested user ID: {requested_user_id}",
-        reply_markup=InlineKeyboardMarkup([
-            [InlineKeyboardButton("Accept", callback_data=f"accept_join_request_{user_id}_{requested_user_id}_{team_name}"),
-             InlineKeyboardButton("Reject", callback_data=f"reject_join_request_{user_id}_{requested_user_id}_{team_name}")]
-        ])
-    )
+    # Construct the mention with user's ID
+    user_mention = f"<a href='tg://user?id={user.id}'>{user_full_name}</a> (ID: <code>{user.id}</code>)"
     
-    # Close the team selection message for the user
-    await query.message.delete()
-
-
-async def handle_join_request_decision_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query = update.callback_query
-    # Extract user ID of the leader who clicked the button
-    leader_id = query.from_user.id
-    
-    # Extract the requested user ID from the callback data
-async def handle_request_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = str(update.effective_user.id)
-    
-    # Load team data from the database
-    team_membersX = load_data()
-    
-    # Check if the user already has an active join request section
-    if user_id in active_join_requests:
-        await update.message.reply_text("You already have an active join request section.")
-        return
-    
-    # Create a new section for the user's join request
-    active_join_requests[user_id] = {'team_selected': False}
-    
-    # Generate team selection buttons
-    team_buttons = []
-    for team_name, team_info in team_membersX.items():
-        button_text = f"{team_name} - {team_info.get('extra_name', '')}"
-        team_buttons.append([InlineKeyboardButton(button_text, callback_data=f"team_selection_{team_name}")])
-    
-    # Create inline keyboard markup
-    reply_markup = InlineKeyboardMarkup(team_buttons)
-    
-    # Send message with team selection buttons
-    await update.message.reply_text("Select a team to join:", reply_markup=reply_markup)
-
-
-async def handle_team_selection_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query = update.callback_query
-    user_id = str(query.from_user.id)
-    data = query.data.split('_')
-    team_name = data[-1]
-    
-    # Load team data from the database
-    team_membersX = load_data()
-    
-    # Check if the user has an active join request section
-    if user_id not in active_join_requests:
-        await query.answer("You don't have an active join request section.")
-        return
-    
-    # Check if the user has already selected a team
-    if active_join_requests[user_id]['team_selected']:
-        await query.answer("You have already selected a team.")
-        return
-    
-    # Mark team as selected for the user
-    active_join_requests[user_id]['team_selected'] = True
-    
-    # Notify the team leader about the join request
-    team_leader_id = team_membersX[team_name]['leader_id']
-    user = query.from_user
-    user_mention = f"{user.first_name} {user.last_name if user.last_name else ''} (ID: {user.id})"
-    
+    # Send the message with the mention and user's ID
     await context.bot.send_message(
         chat_id=team_leader_id,
         text=f"Join request from {user_mention} for team {team_name}.",
+        parse_mode='HTML'
     )
     
     # Close the team selection message for the user
     await query.message.delete()
-
-        
+    
 async def mass_add(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = str(update.effective_user.id)
     text = update.message.text.split()
