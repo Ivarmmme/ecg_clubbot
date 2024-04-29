@@ -3,7 +3,7 @@ from telegram.error import BadRequest
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.constants import ParseMode
 from telegram.ext import Application, CommandHandler, ContextTypes, CallbackQueryHandler, MessageHandler, filters
-from database import load_data, save_data   
+from database import load_data, save_data, collection 
 
 
 async def track_messages(update: Update, context: ContextTypes.DEFAULT_TYPE, collection):
