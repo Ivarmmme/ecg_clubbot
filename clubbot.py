@@ -76,23 +76,15 @@ active_join_requests = {}  # This dictionary tracks the leader and join request 
 
 async def handle_join_request_decision_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    data = query.data.split('_')
-    action = data[0]
-    requested_user_id = data[1]
-
-    # Ensure that the requested_user_id is a valid integer
-    try:
-        requested_user_id = int(requested_user_id)
-    except ValueError:
-        await query.answer("Invalid user ID.")
-        return
-
     # Extract user ID of the leader who clicked the button
     leader_id = query.from_user.id
+    
+    # Extract the requested user ID from the message content
+    requested_user_id = update.effective_message.text.split()[-1]  # Assuming the ID is the last part of the message
 
     # Store the user ID who clicked the button temporarily
     context.user_data['requested_leader_id'] = leader_id
-
+    
     # Load team data from the database
     team_membersX = load_data()
 
