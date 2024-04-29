@@ -55,26 +55,19 @@ async def handle_team_selection_callback(update: Update, context: ContextTypes.D
     # Mark team as selected for the user
     active_join_requests[user_id]['team_selected'] = True
     
-    # Get the team leader ID from the database
-    team_leader_id = team_membersX[team_name]['leader_id']
-    
     # Notify the team leader about the join request
+    team_leader_id = team_membersX[team_name]['leader_id']
     user = query.from_user
-    user_mention = f"[{user.first_name} {user.last_name if user.last_name else ''}](tg://user?id={user.id})"
+    user_mention = f"{user.first_name} {user.last_name if user.last_name else ''} (<code>{user.id}</code>)"
     
-    # Send the join request to the designated channel
-    join_request_message = await context.bot.send_message(
-        chat_id=-1002073727505,  # Replace YOUR_CHANNEL_ID with the actual channel ID
+    await context.bot.send_message(
+        chat_id=team_leader_id,
         text=f"Join request from {user_mention} for team {team_name}.",
-        parse_mode=ParseMode.MARKDOWN
+        parse_mode=ParseMode.HTML
     )
     
-    # Forward the join request message to the corresponding leader with a tag
-    await context.bot.forward_message(chat_id=team_leader_id, from_chat_id=YOUR_CHANNEL_ID, message_id=join_request_message.message_id)
-    
-    # Close the team selection message for the user
-    await query.message.delete()
-
+    # Edit the message to inform the user that the request has been sent to the leader
+    await query.message.edit_text(f"Your join request has been sent to the corresponding leader of {team_name} - {team_membersX[team_name].get('extra_name', '')}.")
     
 async def mass_add(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = str(update.effective_user.id)
