@@ -10,11 +10,6 @@ MONGO_URL = "mongodb+srv://ivarmone:ivarmone009@cluster0.ggfwxno.mongodb.net/"
 DB_NAME = "ivarmone"
 COLLECTION_NAME = "team_membersX"
 
-# Initialize MongoDB client
-client = pymongo.MongoClient(MONGO_URL)
-db = client[DB_NAME]
-collection = db[COLLECTION_NAME]
-
 # Function to save team members data and message counts to MongoDB
 def save_data(team_members, message_counts):
     data_to_save = {
