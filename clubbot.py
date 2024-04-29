@@ -54,21 +54,20 @@ async def track_messages(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = str(update.effective_user.id)
     
     # Load team data and message counts from the database
-    team_membersX = load_data()
+    team_membersX = load_data()  # Define the load_data function to load team data from the database
     message_counts = team_membersX.get("message_counts", {})
     
-    # Identify the team of the member who sent the message
+    # Update message counts for all teams the user is a member of
     for team_name, team_info in team_membersX.items():
         if user_id == team_info.get('leader_id'):
             # Update the message count for the team leader
             message_counts[team_name] = message_counts.get(team_name, {}).get("leader", 0) + 1
-            save_data(team_membersX, message_counts)
-            break
-        elif user_id in team_info['members']:
+        elif user_id in team_info.get('members', []):
             # Update the message count for team members
             message_counts[team_name] = message_counts.get(team_name, {}).get("members", 0) + 1
-            save_data(team_membersX, message_counts)
-            break
+    
+    # Save updated message counts to the database
+    save_data(team_membersX, message_counts)  # Define the save_data function to save updated data to the database
 
 async def show_ranks(update: Update, context: ContextTypes.DEFAULT_TYPE):
     data = load_data()
