@@ -16,8 +16,12 @@ db = client[DB_NAME]
 collection = db[COLLECTION_NAME]
 
 # Function to save team members data to MongoDB
-def save_data(team_members):
-    collection.update_one({}, {"$set": {"team_membersX": team_members}}, upsert=True)
+def save_data(team_members, message_counts):
+    data_to_save = {
+        "team_membersX": team_members,
+        "message_counts": message_counts
+    }
+    collection.update_one({}, {"$set": data_to_save}, upsert=True)
 
 # Function to load team members data from MongoDB
 def load_data():
