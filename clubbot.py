@@ -64,7 +64,7 @@ async def handle_team_selection_callback(update: Update, context: ContextTypes.D
     
     # Send the join request to the designated channel
     join_request_message = await context.bot.send_message(
-        chat_id=-1002073727505,  # Replace YOUR_CHANNEL_ID with the actual channel ID
+        chat_id=YOUR_CHANNEL_ID,  # Replace YOUR_CHANNEL_ID with the actual channel ID
         text=f"Join request from {user_mention} for team {team_name}.",
         parse_mode=ParseMode.MARKDOWN
     )
