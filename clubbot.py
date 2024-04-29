@@ -61,7 +61,7 @@ async def handle_team_selection_callback(update: Update, context: ContextTypes.D
     user_mention = f"[{user.full_name}](tg://user?id={user.id})"
     
     # Generate the message with clickable full name
-    message = f"Join request from {user_mention} for team {team_name}."
+    message = f"Join request from {user_mention} for the {team_name}."
     
     try:
         # Send the message to the team leader
