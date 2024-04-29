@@ -65,7 +65,7 @@ async def track_messages(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def show_ranks(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Load message counts from the database
-    message_counts = load_data().get("message_counts", {})
+    team_membersX, message_counts = load_data()
 
     # Sort teams by message count in descending order
     sorted_teams = sorted(message_counts.items(), key=lambda x: x[1], reverse=True)
@@ -77,7 +77,7 @@ async def show_ranks(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # Send the response
     await update.message.reply_text(response)
-            
+    
 active_join_requests = {}
 
 async def handle_request_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
