@@ -3,8 +3,8 @@ from telegram.error import BadRequest
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.constants import ParseMode
 from telegram.ext import Application, CommandHandler, ContextTypes, CallbackQueryHandler, MessageHandler, filters
-from database import load_data, save_data, collection 
-
+from database import load_data, save_data, collection
+from functools import partial
 
 async def track_messages(update: Update, context: ContextTypes.DEFAULT_TYPE, collection):
     user_id = str(update.effective_user.id)
@@ -387,7 +387,7 @@ def main():
     # Add callback query handlers
     application.add_handler(CallbackQueryHandler(handle_team_selection_callback, pattern=r'^team_selection_'))
     application.add_handler(CommandHandler("ranks", show_ranks))
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, track_messages))
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, lambda update, context: track_messages(update, context, collection)))
     
     application.run_polling()
 
