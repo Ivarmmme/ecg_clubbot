@@ -59,7 +59,7 @@ async def track_messages(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     # Identify the team of the member who sent the message
     for team_name, team_info in team_membersX.items():
-        if user_id == team_info['leader_id']:
+        if user_id == team_info.get('leader_id'):
             # Update the message count for the team leader
             message_counts[team_name] = message_counts.get(team_name, {}).get("leader", 0) + 1
             save_data(team_membersX, message_counts)
