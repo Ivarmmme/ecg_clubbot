@@ -84,45 +84,68 @@ async def handle_join_request_decision_callback(update: Update, context: Context
     leader_id = query.from_user.id
     
     # Extract the requested user ID from the callback data
-    callback_data = query.data.split('_')
-    if len(callback_data) < 3:
-        await query.answer("Invalid callback data.")
-        return
+async def handle_request_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = str(update.effective_user.id)
     
-    requested_user_id_str = callback_data[2]
-    try:
-        requested_user_id = int(requested_user_id_str)
-    except ValueError:
-        await query.answer("Invalid user ID.")
-        return
-
     # Load team data from the database
     team_membersX = load_data()
+    
+    # Check if the user already has an active join request section
+    if user_id in active_join_requests:
+        await update.message.reply_text("You already have an active join request section.")
+        return
+    
+    # Create a new section for the user's join request
+    active_join_requests[user_id] = {'team_selected': False}
+    
+    # Generate team selection buttons
+    team_buttons = []
+    for team_name, team_info in team_membersX.items():
+        button_text = f"{team_name} - {team_info.get('extra_name', '')}"
+        team_buttons.append([InlineKeyboardButton(button_text, callback_data=f"team_selection_{team_name}")])
+    
+    # Create inline keyboard markup
+    reply_markup = InlineKeyboardMarkup(team_buttons)
+    
+    # Send message with team selection buttons
+    await update.message.reply_text("Select a team to join:", reply_markup=reply_markup)
 
-    # Get all leader IDs
-    leader_ids = [team_info['leader_id'] for team_info in team_membersX.values()]
 
-    # Convert all leader_ids to int for consistency
-    leader_ids = [int(leader_id) for leader_id in leader_ids]
+async def handle_team_selection_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    user_id = str(query.from_user.id)
+    data = query.data.split('_')
+    team_name = data[-1]
+    
+    # Load team data from the database
+    team_membersX = load_data()
+    
+    # Check if the user has an active join request section
+    if user_id not in active_join_requests:
+        await query.answer("You don't have an active join request section.")
+        return
+    
+    # Check if the user has already selected a team
+    if active_join_requests[user_id]['team_selected']:
+        await query.answer("You have already selected a team.")
+        return
+    
+    # Mark team as selected for the user
+    active_join_requests[user_id]['team_selected'] = True
+    
+    # Notify the team leader about the join request
+    team_leader_id = team_membersX[team_name]['leader_id']
+    user = query.from_user
+    user_mention = f"{user.first_name} {user.last_name if user.last_name else ''} (ID: {user.id})"
+    
+    await context.bot.send_message(
+        chat_id=team_leader_id,
+        text=f"Join request from {user_mention} for team {team_name}.",
+    )
+    
+    # Close the team selection message for the user
+    await query.message.delete()
 
-    # Find the closest matching leader ID
-    closest_leader_id = min(leader_ids, key=lambda x: abs(x - requested_user_id))
-
-    # Find the team associated with the closest matching leader ID
-    team_name = None
-    for name, info in team_membersX.items():
-        if int(info['leader_id']) == closest_leader_id:
-            team_name = name
-            break
-
-    if team_name:
-        # Add the requested user to the corresponding team
-        team_membersX[team_name]['members'].append(str(requested_user_id))  # Ensure requested_user_id is converted to string
-        # Save the updated team data to the database
-        save_data(team_membersX)
-        await query.answer("Join request accepted.")
-    else:
-        await query.answer("No matching team found for this leader.")
         
 async def mass_add(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = str(update.effective_user.id)
@@ -404,7 +427,7 @@ def main():
     
     # Add callback query handlers
     application.add_handler(CallbackQueryHandler(handle_team_selection_callback, pattern=r'^team_selection_'))
-    application.add_handler(CallbackQueryHandler(handle_join_request_decision_callback, pattern=r'^(accept_join_request_|reject_join_request_)'))
+    
     application.run_polling()
 
 if __name__ == '__main__':
