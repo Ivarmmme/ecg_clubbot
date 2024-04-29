@@ -2,9 +2,46 @@ import os
 from telegram.error import BadRequest 
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.constants import ParseMode
-from telegram.ext import Application, CommandHandler, ContextTypes, CallbackQueryHandler
+from telegram.ext import Application, CommandHandler, ContextTypes, CallbackQueryHandler, MessageHandler, Filters
 from database import load_data, save_data   
 
+
+async def track_messages(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = str(update.effective_user.id)
+    
+    # Load team data and message counts from the database
+    team_membersX = load_data()
+    message_counts = collection.find_one({}).get("message_counts", {}) if collection.find_one({}) else {}
+
+    # Identify the team of the member who sent the message
+    for team_name, team_info in team_membersX.items():
+        if user_id == team_info['leader_id']:
+            # Update the message count for the team leader
+            message_counts[team_name] = message_counts.get(team_name, {}).get("leader", 0) + 1
+            save_data(team_membersX, message_counts)
+            break
+        elif user_id in team_info['members']:
+            # Update the message count for team members
+            message_counts[team_name] = message_counts.get(team_name, {}).get("members", 0) + 1
+            save_data(team_membersX, message_counts)
+            break
+
+async def show_ranks(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # Load message counts from the database
+    message_counts = collection.find_one({}).get("message_counts", {}) if collection.find_one({}) else {}
+
+    # Sort teams by message count in descending order
+    sorted_teams = sorted(message_counts.items(), key=lambda x: x[1], reverse=True)
+
+    # Prepare the response
+    response = "Message Ranks:\n"
+    for rank, (team_name, count) in enumerate(sorted_teams, start=1):
+        response += f"{rank}. {team_name} - {count} messages\n"
+
+    # Send the response
+    await update.message.reply_text(response)
+    
+            
 active_join_requests = {}
 
 async def handle_request_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -349,6 +386,8 @@ def main():
     
     # Add callback query handlers
     application.add_handler(CallbackQueryHandler(handle_team_selection_callback, pattern=r'^team_selection_'))
+    application.add_handler(CommandHandler("ranks", show_ranks))
+    application.add_handler(MessageHandler(Filters.text & ~Filters.command, track_messages))
     
     application.run_polling()
 
