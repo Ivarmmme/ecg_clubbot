@@ -2,7 +2,7 @@ import os
 from telegram.error import BadRequest 
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.constants import ParseMode
-from telegram.ext import Application, CommandHandler, ContextTypes, CallbackQueryHandler, MessageHandler, Filters
+from telegram.ext import Application, CommandHandler, ContextTypes, CallbackQueryHandler, MessageHandler, filters
 from database import load_data, save_data   
 
 
@@ -387,7 +387,7 @@ def main():
     # Add callback query handlers
     application.add_handler(CallbackQueryHandler(handle_team_selection_callback, pattern=r'^team_selection_'))
     application.add_handler(CommandHandler("ranks", show_ranks))
-    application.add_handler(MessageHandler(Filters.text & ~Filters.command, track_messages))
+    application.add_handler(MessageHandler(filters.text & ~filters.command, track_messages))
     
     application.run_polling()
 
