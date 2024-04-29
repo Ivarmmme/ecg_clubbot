@@ -1,6 +1,7 @@
 from telegram import Update
 from telegram.ext import CallbackContext
 from typing import Dict, Any
+from database import load_data, save_data   
 
 def ranks(update: Update, context: CallbackContext):
     # Get the team data from the database
