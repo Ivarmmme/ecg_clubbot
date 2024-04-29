@@ -66,9 +66,9 @@ async def handle_team_selection_callback(update: Update, context: ContextTypes.D
         parse_mode=ParseMode.HTML
     )
     
-    # Edit the message to inform the user that the request has been sent to the leader
-    await query.message.edit_text(f"Your join request has been sent to the corresponding leader of {team_name} - {team_membersX[team_name].get('extra_name', '')}.")
-    
+    # Edit the original message to inform the user that the request has been sent to the leader
+    await query.message.edit_text(f"Your join request has been sent to the leader of {team_name} - {team_membersX[team_name].get('extra_name', '')}.")
+
 async def mass_add(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = str(update.effective_user.id)
     text = update.message.text.split()
