@@ -104,8 +104,13 @@ async def handle_join_request_decision_callback(update: Update, context: Context
     # Continue processing the join request here...
 
 def find_closest_leader(user_id, leader_ids):
+    # Convert user_id to int for consistency
+    user_id = int(user_id)
+
+    # Convert all leader_ids to int for consistency
+    leader_ids = [int(leader_id) for leader_id in leader_ids]
+
     # Logic to find the closest matching leader ID
-    # For simplicity, let's assume the closest matching leader is the one with the smallest absolute difference in IDs
     closest_leader_id = min(leader_ids, key=lambda x: abs(x - user_id))
     return closest_leader_id
 
