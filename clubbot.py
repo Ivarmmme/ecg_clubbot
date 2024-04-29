@@ -58,19 +58,20 @@ async def handle_team_selection_callback(update: Update, context: ContextTypes.D
     # Notify the team leader about the join request
     team_leader_id = team_membersX[team_name]['leader_id']
     user = query.from_user
+    user_name = f"{user.first_name} {user.last_name}" if user.last_name else user.first_name
     
-    # Extract user's full name
-    user_full_name = f"{user.first_name} {user.last_name if user.last_name else ''}"
+    # Generate the message with clickable user mentioning and full name
+    message = f"Join request from [{user_name}](tg://user?id={user.id}) for team {team_name}."
     
-    # Construct the mention with user's ID
-    user_mention = f"<a href='tg://user?id={user.id}'>{user_full_name}</a> (ID: <code>{user.id}</code>)"
-    
-    # Send the message with the mention and user's ID
-    await context.bot.send_message(
-        chat_id=team_leader_id,
-        text=f"Join request from {user_mention} for team {team_name}.",
-        parse_mode='HTML'
-    )
+    try:
+        # Send the message to the team leader
+        await context.bot.send_message(
+            chat_id=team_leader_id,
+            text=message,
+            parse_mode=ParseMode.MARKDOWN
+        )
+    except BadRequest as e:
+        print(f"Error: {e}")
     
     # Close the team selection message for the user
     await query.message.delete()
