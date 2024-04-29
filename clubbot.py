@@ -2,8 +2,7 @@ import os
 from telegram.error import BadRequest 
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.constants import ParseMode
-from telegram.ext import Application, CommandHandler, ContextTypes, CallbackQueryHandler, MessageHandler, filters
-from functools import partial
+from telegram.ext import Application, CommandHandler, ContextTypes, CallbackQueryHandler, MessageHandler
 import dns.resolver
 import pymongo
 
