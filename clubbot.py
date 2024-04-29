@@ -92,27 +92,31 @@ async def handle_join_request_decision_callback(update: Update, context: Context
     # Get all leader IDs
     leader_ids = [team_info['leader_id'] for team_info in team_membersX.values()]
 
-    # Find the most matching leader ID
-    closest_leader_id = find_closest_leader(leader_id, leader_ids)
-
-    # Send the most matching leader ID back to the chat
-    await context.bot.send_message(
-        chat_id=query.message.chat_id,
-        text=f"The closest matching leader ID: {closest_leader_id}"
-    )
-
-    # Continue processing the join request here...
-
-def find_closest_leader(user_id, leader_ids):
     # Convert user_id to int for consistency
-    user_id = int(user_id)
+    user_id = int(requested_user_id)
 
     # Convert all leader_ids to int for consistency
     leader_ids = [int(leader_id) for leader_id in leader_ids]
 
     # Logic to find the closest matching leader ID
     closest_leader_id = min(leader_ids, key=lambda x: abs(x - user_id))
-    return closest_leader_id
+
+    # Find the team associated with the closest matching leader ID
+    team_name = None
+    for name, info in team_membersX.items():
+        if int(info['leader_id']) == closest_leader_id:
+            team_name = name
+            break
+
+    if team_name:
+        # Add the requested user to the corresponding team
+        team_membersX[team_name]['members'].append(requested_user_id)
+        # Save the updated team data to the database
+        save_data(team_membersX)
+        await query.answer("Join request accepted.")
+    else:
+        await query.answer("No matching team found for this leader.")
+
 
 
 async def mass_add(update: Update, context: ContextTypes.DEFAULT_TYPE):
