@@ -57,7 +57,7 @@ async def handle_team_selection_callback(update: Update, context: ContextTypes.D
     user_mention = f"[{user.first_name} {user.last_name if user.last_name else ''}](tg://user?id={user.id})"
     
     await context.bot.send_message(
-        chat_id='-1002073727505',  # Replace with your channel username
+        chat_id='-1001289294178',  # Replace with your channel username
         text=f"Join request from {user_mention} for team {team_name}."
     )
     
