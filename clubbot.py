@@ -39,9 +39,6 @@ async def handle_team_selection_callback(update: Update, context: ContextTypes.D
     data = query.data.split('_')
     team_name = data[-1]
     
-    # Load team data from the database
-    team_membersX = load_data()
-    
     # Check if the user has an active join request section
     if user_id not in active_join_requests:
         await query.answer("You don't have an active join request section.")
@@ -55,23 +52,14 @@ async def handle_team_selection_callback(update: Update, context: ContextTypes.D
     # Mark team as selected for the user
     active_join_requests[user_id]['team_selected'] = True
     
-    # Notify the team leader about the join request
-    team_leader_id = team_membersX[team_name]['leader_id']
+    # Notify the channel about the join request
     user = query.from_user
-    user_mention = f"[{user.full_name}](tg://user?id={user.id})"
+    user_mention = f"[{user.first_name} {user.last_name if user.last_name else ''}](tg://user?id={user.id})"
     
-    # Generate the message with clickable full name
-    message = f"Join request from {user_mention} for the {team_name}."
-    
-    try:
-        # Send the message to the team leader
-        await context.bot.send_message(
-            chat_id=team_leader_id,
-            text=message,
-            parse_mode=ParseMode.MARKDOWN
-        )
-    except BadRequest as e:
-        print(f"Error: {e}")
+    await context.bot.send_message(
+        chat_id='-1002073727505',  # Replace with your channel username
+        text=f"Join request from {user_mention} for team {team_name}."
+    )
     
     # Close the team selection message for the user
     await query.message.delete()
