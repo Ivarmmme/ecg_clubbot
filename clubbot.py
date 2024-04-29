@@ -6,13 +6,13 @@ from telegram.ext import Application, CommandHandler, ContextTypes, CallbackQuer
 from database import load_data, save_data   
 
 
-async def track_messages(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def track_messages(update: Update, context: ContextTypes.DEFAULT_TYPE, collection):
     user_id = str(update.effective_user.id)
     
     # Load team data and message counts from the database
-    team_membersX = load_data()
-    message_counts = collection.find_one({}).get("message_counts", {}) if collection.find_one({}) else {}
-
+    team_membersX = load_data(collection)
+    message_counts = team_membersX.get("message_counts", {})
+    
     # Identify the team of the member who sent the message
     for team_name, team_info in team_membersX.items():
         if user_id == team_info['leader_id']:
