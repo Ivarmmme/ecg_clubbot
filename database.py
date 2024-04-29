@@ -15,19 +15,19 @@ client = pymongo.MongoClient(MONGO_URL)
 db = client[DB_NAME]
 collection = db[COLLECTION_NAME]
 
-# Function to save team members data to MongoDB
+# Function to save team members data and message counts to MongoDB
 def save_data(team_members, message_counts):
     data_to_save = {
         "team_membersX": team_members,
         "message_counts": message_counts
     }
-    collection.update_one({}, {"$set": data_to_save}, upsert=True)
+    collection.replace_one({}, data_to_save, upsert=True)
 
-# Function to load team members data from MongoDB
+# Function to load team members data and message counts from MongoDB
 def load_data():
     data = collection.find_one({})
     if data:
-        return data.get("team_membersX", {})
+        return data.get("team_membersX", {}), data.get("message_counts", {})
     else:
         return {
             'team1': {'leader_id': '6369933143', 'members': [], 'extra_name': '👁️⃤ Goated Club'},
@@ -35,4 +35,4 @@ def load_data():
             'team3': {'leader_id': '6824897749', 'members': [], 'extra_name': '🦦 Otters club 🦦'},
             'team4': {'leader_id': '5821282564', 'members': [], 'extra_name':'💰 The Billionaires Club 💰'},
             'team5': {'leader_id': '5920451104', 'members': [], 'extra_name': '👑Imperial🦇'}
-        }
+        }, {}
