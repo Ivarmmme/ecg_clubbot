@@ -64,8 +64,16 @@ async def track_messages(update: Update, context: ContextTypes.DEFAULT_TYPE):
             break
 
 async def show_ranks(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    # Load message counts from the database
-    team_membersX, message_counts = load_data()
+    # Load data from the database
+    data = load_data()
+
+    # Check if data is None
+    if data is None:
+        await update.message.reply_text("Failed to load data from the database.")
+        return
+
+    # Unpack the data
+    team_membersX, message_counts = data
 
     # Sort teams by message count in descending order
     sorted_teams = sorted(message_counts.items(), key=lambda x: x[1], reverse=True)
@@ -77,6 +85,7 @@ async def show_ranks(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # Send the response
     await update.message.reply_text(response)
+
     
 active_join_requests = {}
 
