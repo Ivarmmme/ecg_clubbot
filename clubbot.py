@@ -33,7 +33,7 @@ def save_data(team_members, message_counts):
 def load_data():
     data = collection.find_one({})
     if data:
-        return data.get("team_membersX", {})
+        return data.get("team_membersX", {}), data.get("message_counts", {})
     else:
         return {
             'team1': {'leader_id': '6369933143', 'members': [], 'extra_name': '👁️⃤ Goated Club'},
@@ -41,7 +41,8 @@ def load_data():
             'team3': {'leader_id': '6824897749', 'members': [], 'extra_name': '🦦 Otters club 🦦'},
             'team4': {'leader_id': '5821282564', 'members': [], 'extra_name':'💰 The Billionaires Club 💰'},
             'team5': {'leader_id': '5920451104', 'members': [], 'extra_name': '👑Imperial🦇'}
-        }
+        }, {}
+
         
 async def track_messages(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = str(update.effective_user.id)
