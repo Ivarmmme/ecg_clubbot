@@ -32,7 +32,9 @@ async def handle_request_command(update: Update, context: ContextTypes.DEFAULT_T
     
     # Send message with team selection buttons
     await update.message.reply_text("Select a team to join:", reply_markup=reply_markup)
-        
+    
+active_join_requests = {}        
+
 async def handle_team_selection_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     user_id = str(query.from_user.id)
