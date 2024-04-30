@@ -27,7 +27,7 @@ async def list_teams(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         print(f"Error: {e}")
 
-async def handle_team_selection_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def handle_team_selection_callback_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     user_id = str(query.from_user.id)
     data = query.data.split('_')
@@ -435,7 +435,8 @@ def main():
     
     # Add callback query handlers
     application.add_handler(CallbackQueryHandler(handle_team_selection_callback, pattern=r'^team_selection_'))
-    application.add_handler(CommandHandler("teams", list_teams))
+    application.add_handler(CommandHandler("teams", list_teams)) 
+    application.add_handler(CallbackQueryHandler(handle_team_selection_callback_message, pattern=r'^team_selection_'))
         
     application.run_polling()
 
