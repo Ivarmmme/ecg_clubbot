@@ -436,16 +436,9 @@ def main():
     application.add_handler(CommandHandler("madd", mass_add))
     application.add_handler(CommandHandler("removeall", remove_all))
     application.add_handler(CommandHandler("request", handle_request_command))
-    
-    # Add callback query handlers
-    # For handle_team_selection_callback
-application.add_handler(CallbackQueryHandler(handle_team_selection_callback, pattern=r'^team_selection_callback_'))
-
-# For handle_teams_selection_callback
-application.add_handler(CallbackQueryHandler(handle_teams_selection_callback, pattern=r'^team_selection_list_'))
-
+    application.add_handler(CallbackQueryHandler(handle_team_selection_callback, pattern=r'^team_selection_callback_'))
+    application.add_handler(CallbackQueryHandler(handle_teams_selection_callback, pattern=r'^team_selection_list_'))
     application.add_handler(CommandHandler("teams", list_teams))
-    
     
     application.run_polling()
 
