@@ -329,6 +329,28 @@ async def team_list(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except BadRequest as e:
         print(f"Error: {e}")
 
+async def list_teams(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    try:
+        # Load team data from the database
+        team_membersX = load_data()
+        
+        # Generate team selection buttons
+        team_buttons = []
+        for team_name, team_info in team_membersX.items():
+            button_text = f"{team_name} - {team_info.get('extra_name', '')}"
+            team_buttons.append([InlineKeyboardButton(button_text, callback_data=f"team_selection_{team_name}")])
+        
+        # Create inline keyboard markup
+        reply_markup = InlineKeyboardMarkup(team_buttons)
+        
+        # Send message with team selection buttons
+        message = await update.message.reply_text("Select a team to view its members:", reply_markup=reply_markup)
+        
+        # Store message ID to edit later
+        active_join_requests[str(update.effective_user.id)] = {'team_selected': False, 'message_id': message.message_id}
+    except Exception as e:
+        print(f"Error: {e}")
+
 async def handle_team_selection_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     user_id = str(query.from_user.id)
