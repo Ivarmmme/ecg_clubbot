@@ -31,9 +31,7 @@ async def handle_request_command(update: Update, context: ContextTypes.DEFAULT_T
     reply_markup = InlineKeyboardMarkup(team_buttons)
     
     # Send message with team selection buttons
-    await update.message.reply_text("Select a team to join:", reply_markup=reply_markup)
-    
-active_join_requests = {}        
+    await update.message.reply_text("Select a team to join:", reply_markup=reply_markup)        
 
 async def handle_team_selection_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -357,7 +355,7 @@ async def list_teams(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # Define a new dictionary to track team selection requests
 user_team_selections = {}
 
-async def handle_team_selection_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def handle_teams_selection_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     user_id = str(query.from_user.id)
     data = query.data.split('_')
@@ -442,7 +440,7 @@ def main():
     # Add callback query handlers
     application.add_handler(CallbackQueryHandler(handle_team_selection_callback, pattern=r'^team_selection_'))
     application.add_handler(CommandHandler("teams", list_teams))
-    application.add_handler(CallbackQueryHandler(handle_team_selection_callback, pattern=r'^team_selection_callback_'))
+    application.add_handler(CallbackQueryHandler(handle_teams_selection_callback, pattern=r'^team_selection_callback_'))
     
     application.run_polling()
 
