@@ -347,9 +347,13 @@ async def list_teams(update: Update, context: ContextTypes.DEFAULT_TYPE):
         message = await update.message.reply_text("Select a team to view its members:", reply_markup=reply_markup)
         
         # Store message ID to edit later
-        active_join_requests[str(update.effective_user.id)] = {'team_selected': False, 'message_id': message.message_id}
+        user_id = str(update.effective_user.id)
+        user_team_selections[user_id] = {'team_selected': False, 'message_id': message.message_id}
     except Exception as e:
         print(f"Error: {e}")
+
+# Define a new dictionary to track team selection requests
+user_team_selections = {}
 
 async def handle_team_selection_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -360,21 +364,21 @@ async def handle_team_selection_callback(update: Update, context: ContextTypes.D
     # Load team data from the database
     team_membersX = load_data()
     
-    # Check if the user has an active join request section
-    if user_id not in active_join_requests:
-        await query.answer("You don't have an active join request section.")
+    # Check if the user has a team selection request
+    if user_id not in user_team_selections:
+        await query.answer("You don't have a team selection request.")
         return
     
     # Check if the user has already selected a team
-    if active_join_requests[user_id]['team_selected']:
+    if user_team_selections[user_id]['team_selected']:
         await query.answer("You have already selected a team.")
         return
     
     # Mark team as selected for the user
-    active_join_requests[user_id]['team_selected'] = True
+    user_team_selections[user_id]['team_selected'] = True
     
     # Get the original message ID to edit
-    message_id = active_join_requests[user_id]['message_id']
+    message_id = user_team_selections[user_id]['message_id']
     
     # Generate team info message
     team_info_message = await generate_team_info_message(update, team_name, team_membersX, context)
