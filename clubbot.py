@@ -375,7 +375,7 @@ async def handle_team_pick_callback(update: Update, context: CallbackContext):
     else:
         await query.answer("Failed to retrieve original message.")
 
-def generate_team_info_message(team_name, team_membersX):
+def generate_team_info_message(context, team_name, team_membersX):
     if team_name in team_membersX:
         team_info = team_membersX[team_name]
         leader_id = team_info['leader_id']
@@ -406,8 +406,6 @@ def generate_team_info_message(team_name, team_membersX):
         return response
     else:
         return "Team not found."
-
-
         
 def main():
     # Get the bot token from an environment variable
