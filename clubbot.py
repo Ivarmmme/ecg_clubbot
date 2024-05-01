@@ -420,8 +420,8 @@ async def team_list(update: Update, context: ContextTypes.DEFAULT_TYPE):
             
             extra_name = team_info.get('extra_name', '')
             
-            # Retrieve points for the team
-            total_points = team_info.get('points', 0)
+            # Retrieve points for the team and handle empty points case
+            total_points = team_info.get('points', '0') if team_info.get('points', '') != '' else '0'
             
             members = team_info['members']
             member_mentions = [
