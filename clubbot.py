@@ -374,14 +374,15 @@ async def handle_team_pick_callback(update: Update, context: ContextTypes.DEFAUL
     # Edit the original message with team info
     await query.message.edit_text(team_info_message, parse_mode=ParseMode.MARKDOWN)
 
-async def generate_team_info_message(context, update, team_name, team_membersX):
+async def generate_team_info_message(team_name, team_membersX):
     if team_name in team_membersX:
         team_info = team_membersX[team_name]
         leader_id = team_info['leader_id']
         leader_mention = None
         leader = await context.bot.get_chat_member(update.effective_chat.id, leader_id)
+        leader = leader.user
         if leader:
-            leader_name = f"{leader.user.first_name} {leader.user.last_name if leader.user.last_name else ''}".strip()
+            leader_name = f"{leader.first_name} {leader.last_name if leader.last_name else ''}".strip()
             leader_mention = f"[{leader_name}](tg://user?id={leader_id})"
         
         extra_name = team_info.get('extra_name', '')
@@ -404,6 +405,7 @@ async def generate_team_info_message(context, update, team_name, team_membersX):
         return response
     else:
         return "Team not found."
+
 
 
 
