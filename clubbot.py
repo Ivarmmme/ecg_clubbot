@@ -2,7 +2,7 @@ import os
 from telegram.error import BadRequest 
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.constants import ParseMode
-from telegram.ext import Application, CommandHandler, ContextTypes, CallbackQueryHandler, MessageHandler
+from telegram.ext import Application, CommandHandler, ContextTypes, CallbackQueryHandler, MessageHandler, CallbackContext
 from database import save_data, load_data
 
 active_join_requests = {}
