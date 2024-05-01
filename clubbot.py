@@ -366,7 +366,7 @@ async def handle_team_pick_callback(update: Update, context: CallbackContext):
         return
     
     # Generate team info message
-    team_info_message = await generate_team_info_message(update, context, team_name, team_membersX)
+    team_info_message = await generate_team_info_message(update, context, team_membersX)
     
     # Edit the original message with team info
     message_id = context.user_data.get(user_id)
