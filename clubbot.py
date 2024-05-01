@@ -430,11 +430,15 @@ async def team_list(update: Update, context: ContextTypes.DEFAULT_TYPE):
             for member_mention in member_mentions:
                 member = member_mention.user
                 member_name = f"{member.first_name} {member.last_name if member.last_name else ''}".strip()
-                member_names.append(f"[{member_name}](tg://user?id={member_mention.user.id})")
+                member_names.append(f"- {member_name}")
             
-            response = f"| {extra_name} |:\nLeader: {leader_mention}\nMembers:\n"
+            response = f"| Team Name: {team_name} - {extra_name} |\nLeader: {leader_mention}\nMembers:\n"
             response += "\n".join(member_names) if member_names else "No members."
             
+            # Fetch and display team points
+            total_points = fetch_team_points(team_name)  # Implement this function to fetch team points from the database
+            response += f"\nTotal Points: {total_points}" if total_points is not None else "Total Points: 0"
+
             await update.message.reply_text(response, parse_mode=ParseMode.MARKDOWN)
     except BadRequest as e:
         print(f"Error: {e}")
