@@ -332,85 +332,80 @@ async def team_list(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 team_picked_by_user = {}
 
-async def list_teams(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    try:
-        # Load team data from the database
-        team_membersX = load_data()
-        
-        # Generate team selection buttons
-        team_buttons = []
-        for team_name, team_info in team_membersX.items():
-            button_text = f"{team_name} - {team_info.get('extra_name', '')}"
-            team_buttons.append([InlineKeyboardButton(button_text, callback_data=f"team_pick_{team_name}")])
-        
-        # Create inline keyboard markup
-        reply_markup = InlineKeyboardMarkup(team_buttons)
-        
-        # Send message with team selection buttons
-        await update.message.reply_text("Select a team to view its members:", reply_markup=reply_markup)
-    except Exception as e:
-        print(f"Error: {e}")
+async def list_teams(update: Update, context: CallbackContext):
+    # Load team data from the database
+    team_membersX = load_data()
+    
+    # Generate team selection buttons
+    team_buttons = []
+    for team_name, team_info in team_membersX.items():
+        button_text = f"{team_name} - {team_info.get('extra_name', '')}"
+        team_buttons.append([InlineKeyboardButton(button_text, callback_data=f"team_pick_{team_name}")])
+    
+    # Create inline keyboard markup
+    reply_markup = InlineKeyboardMarkup(team_buttons)
+    
+    # Send message with team selection buttons
+    message = await update.message.reply_text("Select a team to view its members:", reply_markup=reply_markup)
+    
+    # Store the message ID for future reference
+    context.user_data[update.effective_user.id] = message.message_id
 
-async def handle_team_pick_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def handle_team_pick_callback(update: Update, context: CallbackContext):
     query = update.callback_query
-    user_id = str(query.from_user.id)
+    user_id = update.effective_user.id
     data = query.data.split('_')
     team_name = data[-1]
-    
-    # Check if the user has already picked a team
-    if user_id in team_picked_by_user:
-        await query.answer("You have already picked a team.")
-        return
-    
-    # Store the picked team for the user
-    team_picked_by_user[user_id] = team_name
     
     # Load team data from the database
     team_membersX = load_data()
     
+    # Check if the team exists
+    if team_name not in team_membersX:
+        await query.answer("This team does not exist.")
+        return
+    
     # Generate team info message
-    team_info_message = generate_team_info_message(context, update, team_name, team_membersX)
+    team_info_message = generate_team_info_message(team_name, team_membersX)
     
     # Edit the original message with team info
-    await query.message.edit_text(team_info_message, parse_mode=ParseMode.MARKDOWN)
+    message_id = context.user_data.get(user_id)
+    if message_id:
+        await query.message.edit_text(team_info_message, parse_mode=ParseMode.MARKDOWN)
+    else:
+        await query.answer("Failed to retrieve original message.")
 
-def generate_team_info_message_sync(context, update, team_name, team_membersX):
-    import asyncio
-
-    async def generate_team_info_message_async(context, update, team_name, team_membersX):
-        if team_name in team_membersX:
-            team_info = team_membersX[team_name]
-            leader_id = team_info['leader_id']
-            leader_mention = None
-            leader = await context.bot.get_chat_member(update.effective_chat.id, leader_id)
-            leader = leader.user
-            if leader:
-                leader_name = f"{leader.first_name} {leader.last_name if leader.last_name else ''}".strip()
-                leader_mention = f"[{leader_name}](tg://user?id={leader_id})"
-            
-            extra_name = team_info.get('extra_name', '')
-            
-            members = team_info['members']
-            member_mentions = [
-                await context.bot.get_chat_member(update.effective_chat.id, member)
-                for member in members
-            ]
-            
-            member_names = []
-            for member_mention in member_mentions:
-                member = member_mention.user
-                member_name = f"{member.first_name} {member.last_name if member.last_name else ''}".strip()
-                member_names.append(f"[{member_name}](tg://user?id={member_mention.user.id})")
-            
-            response = f"| {extra_name} |:\nLeader: {leader_mention}\nMembers:\n"
-            response += "\n".join(member_names) if member_names else "No members."
-            
-            return response
-        else:
-            return "Team not found."
-
-    loop = asyncio.get_event_loop()
-    return loop.run_until_complete(generate_team_info_message_async(context, update, team_name, team_membersX))
+def generate_team_info_message(team_name, team_membersX):
+    if team_name in team_membersX:
+        team_info = team_membersX[team_name]
+        leader_id = team_info['leader_id']
+        leader_mention = None
+        leader = context.bot.get_chat_member(update.effective_chat.id, leader_id)
+        leader = leader.user
+        if leader:
+            leader_name = f"{leader.first_name} {leader.last_name if leader.last_name else ''}".strip()
+            leader_mention = f"[{leader_name}](tg://user?id={leader_id})"
+        
+        extra_name = team_info.get('extra_name', '')
+        
+        members = team_info['members']
+        member_names = []
+        for member_id in members:
+            member_name = ""
+            try:
+                member = context.bot.get_chat_member(update.effective_chat.id, member_id)
+                if member:
+                    member_name = f"{member.user.first_name} {member.user.last_name}" if member.user.last_name else member.user.first_name
+            except Exception as e:
+                pass
+            member_names.append(f"[{member_name}](tg://user?id={member_id})")
+        
+        response = f"| {extra_name} |:\nLeader: {leader_mention}\nMembers:\n"
+        response += "\n".join(member_names) if member_names else "No members."
+        
+        return response
+    else:
+        return "Team not found."
 
 
         
