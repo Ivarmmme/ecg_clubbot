@@ -57,7 +57,7 @@ async def points_team_selection(update: Update, context):
 
 # Helper function to check if user is a sudo user
 def is_sudo_user(user_id):
-    sudo_users = [7023056247, 834552248]  # Replace with your sudo users' IDs
+    sudo_users = [7023056247, 834552248, 1475288014]  # Replace with your sudo users' IDs
     return user_id in sudo_users
 
 # Command handler for /cutpoints
@@ -435,7 +435,7 @@ async def team_list(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 member_name = f"{member.first_name} {member.last_name if member.last_name else ''}".strip()
                 member_names.append(f"[{member_name}](tg://user?id={member_mention.user.id})")
             
-            response = f"| {extra_name} |:\nLeader: {leader_mention}\n𝐓𝐨𝐭𝐚𝐥 𝐏𝐨𝐢𝐧𝐭: {total_points}\nMembers:\n"
+            response = f"| {extra_name} |:\nLeader: {leader_mention}\n𝐓𝐨𝐭𝐚𝐥 𝐏𝐨𝐢𝐧𝐭𝐬: {total_points}\nMembers:\n"
             response += "\n".join(member_names) if member_names else "No members."
             
             await update.message.reply_text(response, parse_mode=ParseMode.MARKDOWN)
