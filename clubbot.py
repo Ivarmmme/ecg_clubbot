@@ -30,8 +30,8 @@ async def points_command(update: Update, context):
             reply_markup = InlineKeyboardMarkup(keyboard)
             message = await update.message.reply_text(f"Pick a team to add {points} points:", reply_markup=reply_markup)
             
-            # Auto delete the message after 30 seconds
-            await asyncio.sleep(30)
+            # Auto delete the message after 60 seconds
+            await asyncio.sleep(60)
             await message.delete()
         except (IndexError, ValueError):
             await update.message.reply_text("Usage: /points <points>")
@@ -66,6 +66,8 @@ def is_sudo_user(user_id):
     return user_id in sudo_users
 
 # Command handler for /cutpoints
+import asyncio
+
 async def cutpoints_command(update: Update, context):
     # Check if the user is a sudo user
     if is_sudo_user(update.effective_user.id):
@@ -87,11 +89,16 @@ async def cutpoints_command(update: Update, context):
                 keyboard.append([InlineKeyboardButton(button_text, callback_data=callback_data)])
             
             reply_markup = InlineKeyboardMarkup(keyboard)
-            await update.message.reply_text(f"Pick a team to deduct {points} points:", reply_markup=reply_markup)
+            message = await update.message.reply_text(f"Pick a team to deduct {points} points:", reply_markup=reply_markup)
+            
+            # Auto delete the message after 60 seconds
+            await asyncio.sleep(60)
+            await message.delete()
         except (IndexError, ValueError):
-            await update.message.reply_text("Usage: /cutpoints <points>")
+            await update.message.reply_text("Usage: /cut <points>")
     else:
         await update.message.reply_text("You are not authorized to use this command.")
+
 
 # Callback query handler for team selection to cut points
 async def cutpoints_team_selection(update: Update, context):
