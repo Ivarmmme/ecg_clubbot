@@ -374,40 +374,43 @@ async def handle_team_pick_callback(update: Update, context: ContextTypes.DEFAUL
     # Edit the original message with team info
     await query.message.edit_text(team_info_message, parse_mode=ParseMode.MARKDOWN)
 
-async def generate_team_info_message(context, update, team_name, team_membersX):
-    if team_name in team_membersX:
-        team_info = team_membersX[team_name]
-        leader_id = team_info['leader_id']
+def generate_team_info_message_sync(context, update, team_name, team_membersX):
+    import asyncio
 
-        try:
+    async def generate_team_info_message_async(context, update, team_name, team_membersX):
+        if team_name in team_membersX:
+            team_info = team_membersX[team_name]
+            leader_id = team_info['leader_id']
+            leader_mention = None
             leader = await context.bot.get_chat_member(update.effective_chat.id, leader_id)
-            leader_name = f"{leader.user.first_name} {leader.user.last_name if leader.user.last_name else ''}".strip()
-            leader_mention = f"[{leader_name}](tg://user?id={leader_id})"
-        except Exception as e:
-            leader_mention = "Leader not found"  # Handle potential errors 
+            leader = leader.user
+            if leader:
+                leader_name = f"{leader.first_name} {leader.last_name if leader.last_name else ''}".strip()
+                leader_mention = f"[{leader_name}](tg://user?id={leader_id})"
+            
+            extra_name = team_info.get('extra_name', '')
+            
+            members = team_info['members']
+            member_mentions = [
+                await context.bot.get_chat_member(update.effective_chat.id, member)
+                for member in members
+            ]
+            
+            member_names = []
+            for member_mention in member_mentions:
+                member = member_mention.user
+                member_name = f"{member.first_name} {member.last_name if member.last_name else ''}".strip()
+                member_names.append(f"[{member_name}](tg://user?id={member_mention.user.id})")
+            
+            response = f"| {extra_name} |:\nLeader: {leader_mention}\nMembers:\n"
+            response += "\n".join(member_names) if member_names else "No members."
+            
+            return response
+        else:
+            return "Team not found."
 
-        extra_name = team_info.get('extra_name', '')
-        
-        members = team_info['members']
-        member_names = []
-        for member_id in members:
-            member_name = ""
-            try:
-                member = await context.bot.get_chat_member(update.effective_chat.id, member_id)
-                if member:
-                    member_name = f"{member.user.first_name} {member.user.last_name}" if member.user.last_name else member.user.first_name
-            except Exception as e:
-                pass
-            member_names.append(f"[{member_name}](tg://user?id={member_id})")
-        
-        response = f"| {extra_name} |:\nLeader: {leader_mention}\nMembers:\n"
-        response += "\n".join(member_names) if member_names else "No members."
-        
-        return response
-    else:
-        return "Team not found."
-
-
+    loop = asyncio.get_event_loop()
+    return loop.run_until_complete(generate_team_info_message_async(context, update, team_name, team_membersX))
 
 
         
