@@ -374,17 +374,18 @@ async def handle_team_pick_callback(update: Update, context: ContextTypes.DEFAUL
     # Edit the original message with team info
     await query.message.edit_text(team_info_message, parse_mode=ParseMode.MARKDOWN)
 
-def generate_team_info_message(context, update, team_name, team_membersX):
+async def generate_team_info_message(context, update, team_name, team_membersX):
     if team_name in team_membersX:
         team_info = team_membersX[team_name]
         leader_id = team_info['leader_id']
-        leader_mention = None
-        leader = context.bot.get_chat_member(update.effective_chat.id, leader_id)
-        leader = leader.user
-        if leader:
-            leader_name = f"{leader.first_name} {leader.last_name if leader.last_name else ''}".strip()
+
+        try:
+            leader = await context.bot.get_chat_member(update.effective_chat.id, leader_id)
+            leader_name = f"{leader.user.first_name} {leader.user.last_name if leader.user.last_name else ''}".strip()
             leader_mention = f"[{leader_name}](tg://user?id={leader_id})"
-        
+        except Exception as e:
+            leader_mention = "Leader not found"  # Handle potential errors 
+
         extra_name = team_info.get('extra_name', '')
         
         members = team_info['members']
@@ -392,7 +393,7 @@ def generate_team_info_message(context, update, team_name, team_membersX):
         for member_id in members:
             member_name = ""
             try:
-                member = context.bot.get_chat_member(update.effective_chat.id, member_id)
+                member = await context.bot.get_chat_member(update.effective_chat.id, member_id)
                 if member:
                     member_name = f"{member.user.first_name} {member.user.last_name}" if member.user.last_name else member.user.first_name
             except Exception as e:
@@ -405,6 +406,7 @@ def generate_team_info_message(context, update, team_name, team_membersX):
         return response
     else:
         return "Team not found."
+
 
 
 
