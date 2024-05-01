@@ -328,84 +328,6 @@ async def team_list(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await update.message.reply_text(response, parse_mode=ParseMode.MARKDOWN)
     except BadRequest as e:
         print(f"Error: {e}")
-
-
-team_picked_by_user = {}
-
-async def list_teams(update: Update, context: CallbackContext):
-    # Load team data from the database
-    team_membersX = load_data()
-    
-    # Generate team selection buttons
-    team_buttons = []
-    for team_name, team_info in team_membersX.items():
-        button_text = f"{team_name} - {team_info.get('extra_name', '')}"
-        team_buttons.append([InlineKeyboardButton(button_text, callback_data=f"team_pick_{team_name}")])
-    
-    # Create inline keyboard markup
-    reply_markup = InlineKeyboardMarkup(team_buttons)
-    
-    # Send message with team selection buttons
-    message = await update.message.reply_text("Select a team to view its members:", reply_markup=reply_markup)
-    
-    # Store the message ID for future reference
-    context.user_data[update.effective_user.id] = message.message_id
-
-async def handle_team_pick_callback(update: Update, context: CallbackContext):
-    query = update.callback_query
-    user_id = update.effective_user.id
-    data = query.data.split('_')
-    team_name = data[-1]
-    
-    # Load team data from the database
-    team_membersX = load_data()
-    
-    # Check if the team exists
-    if team_name not in team_membersX:
-        await query.answer("This team does not exist.")
-        return
-    
-    # Generate team info message
-    team_info_message = await generate_team_info_message(update, context, team_membersX)
-    
-    # Edit the original message with team info
-    message_id = context.user_data.get(user_id)
-    if message_id:
-        await query.message.edit_text(team_info_message, parse_mode=ParseMode.MARKDOWN)
-    else:
-        await query.answer("Failed to retrieve original message.")
-
-def generate_team_info_message(context, team_name, team_membersX):
-    if team_name in team_membersX:
-        team_info = team_membersX[team_name]
-        leader_id = team_info['leader_id']
-        leader_mention = None
-        leader = context.bot.get_chat_member(update.effective_chat.id, leader_id)
-        leader = leader.user
-        if leader:
-            leader_name = f"{leader.first_name} {leader.last_name if leader.last_name else ''}".strip()
-            leader_mention = f"[{leader_name}](tg://user?id={leader_id})"
-        
-        extra_name = team_info.get('extra_name', '')
-        
-        members = team_info['members']
-        member_names = []
-        for member_id in members:
-            member_name = ""
-            try:
-                member = context.bot.get_chat_member(update.effective_chat.id, member_id)
-                if member:
-                    member_name = f"{member.user.first_name} {member.user.last_name}" if member.user.last_name else member.user.first_name
-            except Exception as e:
-                pass
-            member_names.append(f"[{member_name}](tg://user?id={member_id})")
-        
-        response = f"| {extra_name} |:\nLeader: {leader_mention}\nMembers:\n"
-        response += "\n".join(member_names) if member_names else "No members."
-        
-        return response
-    else:
-        return "Team not found."
         
 def main():
     # Get the bot token from an environment variable
@@ -425,8 +347,6 @@ def main():
     application.add_handler(CommandHandler("removeall", remove_all))
     application.add_handler(CommandHandler("request", handle_request_command))
     application.add_handler(CallbackQueryHandler(handle_team_selection_callback, pattern=r'^team_selection_'))
-    application.add_handler(CommandHandler("teams", list_teams))
-    application.add_handler(CallbackQueryHandler(handle_team_pick_callback, pattern=r'^team_pick_'))
     
     application.run_polling()
 
