@@ -374,7 +374,8 @@ async def handle_team_pick_callback(update: Update, context: ContextTypes.DEFAUL
     # Edit the original message with team info
     await query.message.edit_text(team_info_message, parse_mode=ParseMode.MARKDOWN)
 
-async def generate_team_info_message(team_name, team_membersX):
+async def generate_team_info_message(context, update, team_name, team_membersX):
+    # Function body remains the same
     if team_name in team_membersX:
         team_info = team_membersX[team_name]
         leader_id = team_info['leader_id']
