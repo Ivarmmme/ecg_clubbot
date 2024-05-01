@@ -23,7 +23,7 @@ async def points_command(update: Update, context):
             keyboard = []
             for team_name, team_info in team_membersX.items():
                 button_text = f"{team_name} - {team_info.get('extra_name', '')}"
-                callback_data = f'points_{team_name}'
+                callback_data = f'points_{team_name}_{points}'  # Include points in callback data
                 keyboard.append([InlineKeyboardButton(button_text, callback_data=callback_data)])
             
             reply_markup = InlineKeyboardMarkup(keyboard)
@@ -36,8 +36,9 @@ async def points_command(update: Update, context):
 # Callback query handler for team selection
 async def points_team_selection(update: Update, context):
     query = update.callback_query
-    selected_team = query.data.split('_')[1]  # Extract selected team from callback data
-    points = int(context.args[0])  # Extract points from the callback query arguments
+    data = query.data.split('_')
+    selected_team = data[1]  # Extract selected team from callback data
+    points = int(data[2])  # Extract points from the callback query data
 
     # Check if the user is a sudo user
     if is_sudo_user(query.from_user.id):
