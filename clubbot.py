@@ -444,7 +444,23 @@ async def team_list(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except BadRequest as e:
         print(f"Error: {e}")
 
+async def list_teams_with_points(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    try:
+        team_membersX = load_data()
         
+        response = ""
+        for team_name, team_info in team_membersX.items():
+            extra_name = team_info.get('extra_name', '')
+            points = team_info.get('points', 0)
+            response += f"{extra_name}\nPoints: **{points}**\n\n"
+        
+        await update.message.reply_text(response, parse_mode=ParseMode.MARKDOWN)
+    
+    except BadRequest as e:
+        print(f"Error: {e}")
+
+
+
 def main():
     # Get the bot token from an environment variable
     bot_token = os.environ.get("BOT_TOKEN")  # Replace with your actual environment variable name
@@ -468,7 +484,7 @@ def main():
     # Add command and callback query handlers to the application
     application.add_handler(CommandHandler('cut', cutpoints_command))
     application.add_handler(CallbackQueryHandler(cutpoints_team_selection, pattern=r'^cutpoints_'))
-
+    application.add_handler(CommandHandler('ranks', list_teams_with_points))
     application.run_polling()
 
 if __name__ == '__main__':
