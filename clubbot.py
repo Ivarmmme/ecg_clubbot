@@ -435,7 +435,7 @@ async def team_list(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 member_name = f"{member.first_name} {member.last_name if member.last_name else ''}".strip()
                 member_names.append(f"[{member_name}](tg://user?id={member_mention.user.id})")
             
-            response = f"| {extra_name} |:\nLeader: {leader_mention}\nPoints: {total_points}\nMembers:\n"
+            response = f"| {extra_name} |:\nLeader: {leader_mention}\n**Points:** {total_points}\nMembers:\n"
             response += "\n".join(member_names) if member_names else "No members."
             
             await update.message.reply_text(response, parse_mode=ParseMode.MARKDOWN)
