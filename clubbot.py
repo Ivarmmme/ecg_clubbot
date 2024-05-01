@@ -4,6 +4,7 @@ from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.constants import ParseMode
 from telegram.ext import Application, CommandHandler, ContextTypes, CallbackQueryHandler, MessageHandler, CallbackContext
 from database import save_data, load_data
+import asyncio
 
 # Command handler for /points
 async def points_command(update: Update, context):
@@ -27,7 +28,11 @@ async def points_command(update: Update, context):
                 keyboard.append([InlineKeyboardButton(button_text, callback_data=callback_data)])
             
             reply_markup = InlineKeyboardMarkup(keyboard)
-            await update.message.reply_text(f"Pick a team to add {points} points:", reply_markup=reply_markup)
+            message = await update.message.reply_text(f"Pick a team to add {points} points:", reply_markup=reply_markup)
+            
+            # Auto delete the message after 30 seconds
+            await asyncio.sleep(30)
+            await message.delete()
         except (IndexError, ValueError):
             await update.message.reply_text("Usage: /points <points>")
     else:
