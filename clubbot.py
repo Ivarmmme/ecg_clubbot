@@ -433,6 +433,7 @@ def main():
     application.add_handler(CommandHandler("request", handle_request_command))
     application.add_handler(CallbackQueryHandler(handle_team_selection_callback, pattern=r'^team_selection_'))
     application.add_handler(CommandHandler("teams", list_teams))
+    application.add_handler(CallbackQueryHandler(handle_team_pick_callback, pattern=r'^team_pick_'))
     
     application.run_polling()
 
