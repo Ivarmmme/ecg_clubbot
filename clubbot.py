@@ -60,6 +60,61 @@ def is_sudo_user(user_id):
     sudo_users = [7023056247]  # Replace with your sudo users' IDs
     return user_id in sudo_users
 
+# Command handler for /cutpoints
+async def cutpoints_command(update: Update, context):
+    # Check if the user is a sudo user
+    if is_sudo_user(update.effective_user.id):
+        try:
+            # Extract points from the command
+            points = int(context.args[0])
+            if points < 0:
+                await update.message.reply_text("Points to cut must be a positive integer.")
+                return
+            
+            # Load team data from the database
+            team_membersX = load_data()
+            
+            # Generate inline keyboard buttons for each team dynamically
+            keyboard = []
+            for team_name, team_info in team_membersX.items():
+                button_text = f"{team_name} - {team_info.get('extra_name', '')}"
+                callback_data = f'cutpoints_{team_name}_{points}'  # Include points in callback data
+                keyboard.append([InlineKeyboardButton(button_text, callback_data=callback_data)])
+            
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            await update.message.reply_text(f"Pick a team to deduct {points} points:", reply_markup=reply_markup)
+        except (IndexError, ValueError):
+            await update.message.reply_text("Usage: /cutpoints <points>")
+    else:
+        await update.message.reply_text("You are not authorized to use this command.")
+
+# Callback query handler for team selection to cut points
+async def cutpoints_team_selection(update: Update, context):
+    query = update.callback_query
+    data = query.data.split('_')
+    selected_team = data[1]  # Extract selected team from callback data
+    points = int(data[2])  # Extract points from the callback query data
+
+    # Check if the user is a sudo user
+    if is_sudo_user(query.from_user.id):
+        # Load team data from the database
+        team_membersX = load_data()
+        
+        # Deduct points from the selected team in the database
+        if selected_team in team_membersX:
+            current_points = team_membersX[selected_team].get('points', 0)
+            if current_points >= points:
+                team_membersX[selected_team]['points'] = current_points - points
+                save_data(team_membersX)
+                await query.answer(f"{points} points deducted from {selected_team.title()}.")
+            else:
+                await query.answer("Not enough points to deduct.")
+        else:
+            await query.answer("Invalid team selected.")
+    else:
+        await query.answer("You are not authorized to deduct points.")
+
+
 active_join_requests = {}
 
 async def handle_request_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -404,6 +459,10 @@ def main():
     application.add_handler(CallbackQueryHandler(handle_team_selection_callback, pattern=r'^team_selection_'))
     application.add_handler(CommandHandler("points", points_command))
     application.add_handler(CallbackQueryHandler(points_team_selection, pattern=r'^points_'))
+    # Add command and callback query handlers to the application
+    application.add_handler(CommandHandler('cutpoints', cutpoints_command))
+    application.add_handler(CallbackQueryHandler(cutpoints_team_selection, pattern=r'^cutpoints_'))
+
     application.run_polling()
 
 if __name__ == '__main__':
