@@ -5,6 +5,60 @@ from telegram.constants import ParseMode
 from telegram.ext import Application, CommandHandler, ContextTypes, CallbackQueryHandler, MessageHandler, CallbackContext
 from database import save_data, load_data
 
+# Command handler for /points
+async def points_command(update: Update, context):
+    # Check if the user is a sudo user
+    if is_sudo_user(update.effective_user.id):
+        try:
+            # Extract points from the command
+            points = int(context.args[0])
+            if points < 0:
+                await update.message.reply_text("Points must be a positive integer.")
+                return
+            
+            # Load team data from the database
+            team_membersX = load_data()
+            
+            # Generate inline keyboard buttons for each team dynamically
+            keyboard = []
+            for team_name, team_info in team_membersX.items():
+                button_text = f"{team_name} - {team_info.get('extra_name', '')}"
+                callback_data = f'points_{team_name}'
+                keyboard.append([InlineKeyboardButton(button_text, callback_data=callback_data)])
+            
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            await update.message.reply_text(f"Pick a team to add {points} points:", reply_markup=reply_markup)
+        except (IndexError, ValueError):
+            await update.message.reply_text("Usage: /points <points>")
+    else:
+        await update.message.reply_text("You are not authorized to use this command.")
+
+# Callback query handler for team selection
+async def points_team_selection(update: Update, context):
+    query = update.callback_query
+    selected_team = query.data.split('_')[1]  # Extract selected team from callback data
+    points = int(context.args[0])  # Extract points from the callback query arguments
+
+    # Check if the user is a sudo user
+    if is_sudo_user(query.from_user.id):
+        # Load team data from the database
+        team_membersX = load_data()
+        
+        # Update points for the selected team in the database
+        if selected_team in team_membersX:
+            team_membersX[selected_team]['points'] = team_membersX[selected_team].get('points', 0) + points
+            save_data(team_membersX)
+            await query.answer(f"{points} points added to {selected_team.title()}.")
+        else:
+            await query.answer("Invalid team selected.")
+    else:
+        await query.answer("You are not authorized to add points.")
+
+# Helper function to check if user is a sudo user
+def is_sudo_user(user_id):
+    sudo_users = [7023056247]  # Replace with your sudo users' IDs
+    return user_id in sudo_users
+
 active_join_requests = {}
 
 async def handle_request_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -347,7 +401,8 @@ def main():
     application.add_handler(CommandHandler("removeall", remove_all))
     application.add_handler(CommandHandler("request", handle_request_command))
     application.add_handler(CallbackQueryHandler(handle_team_selection_callback, pattern=r'^team_selection_'))
-    
+    application.add_handler(CommandHandler("points", points_command))
+    application.add_handler(CallbackQueryHandler(points_team_selection, pattern=r'^points_'))
     application.run_polling()
 
 if __name__ == '__main__':
