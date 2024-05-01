@@ -369,40 +369,42 @@ async def handle_team_pick_callback(update: Update, context: ContextTypes.DEFAUL
     team_membersX = load_data()
     
     # Generate team info message
-    team_info_message = generate_team_info_message(team_name, team_membersX)
+    team_info_message = generate_team_info_message(context, update, team_name, team_membersX)
     
     # Edit the original message with team info
     await query.message.edit_text(team_info_message, parse_mode=ParseMode.MARKDOWN)
 
-
-def generate_team_info_message(team_name, team_membersX):
-    team_info = team_membersX.get(team_name)
-    if team_info:
+def generate_team_info_message(context, update, team_name, team_membersX):
+    if team_name in team_membersX:
+        team_info = team_membersX[team_name]
         leader_id = team_info['leader_id']
         leader_mention = None
         leader = context.bot.get_chat_member(update.effective_chat.id, leader_id).user
         if leader:
-            leader_name = f"{leader.first_name} {leader.last_name}" if leader.last_name else leader.first_name
+            leader_name = f"{leader.first_name} {leader.last_name if leader.last_name else ''}".strip()
             leader_mention = f"[{leader_name}](tg://user?id={leader_id})"
         
         extra_name = team_info.get('extra_name', '')
         
         members = team_info['members']
         member_mentions = [
-            context.bot.get_chat_member(update.effective_chat.id, member).user
+            context.bot.get_chat_member(update.effective_chat.id, member)
             for member in members
         ]
         
         member_names = []
         for member_mention in member_mentions:
-            member_name = f"{member_mention.first_name} {member_mention.last_name}" if member_mention.last_name else member_mention.first_name
-            member_names.append(f"[{member_name}](tg://user?id={member_mention.id})")
+            member = member_mention.user
+            member_name = f"{member.first_name} {member.last_name if member.last_name else ''}".strip()
+            member_names.append(f"[{member_name}](tg://user?id={member_mention.user.id})")
         
         response = f"| {extra_name} |:\nLeader: {leader_mention}\nMembers:\n"
         response += "\n".join(member_names) if member_names else "No members."
+        
         return response
     else:
         return "Team not found."
+
 
         
 def main():
