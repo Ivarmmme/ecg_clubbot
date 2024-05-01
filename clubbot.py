@@ -4,7 +4,6 @@ from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.constants import ParseMode
 from telegram.ext import Application, CommandHandler, ContextTypes, CallbackQueryHandler, MessageHandler, CallbackContext
 from database import save_data, load_data
-import asyncio
 
 # Command handler for /points
 async def points_command(update: Update, context):
@@ -28,11 +27,7 @@ async def points_command(update: Update, context):
                 keyboard.append([InlineKeyboardButton(button_text, callback_data=callback_data)])
             
             reply_markup = InlineKeyboardMarkup(keyboard)
-            message = await update.message.reply_text(f"Pick a team to add {points} points:", reply_markup=reply_markup)
-            
-            # Auto delete the message after 60 seconds
-            await asyncio.sleep(60)
-            await message.delete()
+            await update.message.reply_text(f"Pick a team to add {points} points:", reply_markup=reply_markup)
         except (IndexError, ValueError):
             await update.message.reply_text("Usage: /points <points>")
     else:
@@ -89,16 +84,11 @@ async def cutpoints_command(update: Update, context):
                 keyboard.append([InlineKeyboardButton(button_text, callback_data=callback_data)])
             
             reply_markup = InlineKeyboardMarkup(keyboard)
-            message = await update.message.reply_text(f"Pick a team to deduct {points} points:", reply_markup=reply_markup)
-            
-            # Auto delete the message after 60 seconds
-            await asyncio.sleep(60)
-            await message.delete()
+            await update.message.reply_text(f"Pick a team to deduct {points} points:", reply_markup=reply_markup)
         except (IndexError, ValueError):
-            await update.message.reply_text("Usage: /cut <points>")
+            await update.message.reply_text("Usage: /cutpoints <points>")
     else:
         await update.message.reply_text("You are not authorized to use this command.")
-
 
 # Callback query handler for team selection to cut points
 async def cutpoints_team_selection(update: Update, context):
