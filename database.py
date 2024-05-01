@@ -26,9 +26,9 @@ def load_data():
         return data.get("team_membersX", {})
     else:
         return {
-            'team1': {'leader_id': '6369933143', 'members': [], 'extra_name': '👁️⃤ Goated Club'},
-            'team2': {'leader_id': '7196174452', 'members': [], 'extra_name': '☮ Archangels ☮'},
-            'team3': {'leader_id': '6824897749', 'members': [], 'extra_name': '🦦 Otters club 🦦'},
-            'team4': {'leader_id': '5821282564', 'members': [], 'extra_name':'💰 The Billionaires Club 💰'},
-            'team5': {'leader_id': '5920451104', 'members': [], 'extra_name': '👑Imperial🦇'}
+            'team1': {'leader_id': '6369933143', 'members': [], 'extra_name': '👁️⃤ Goated Club', 'points': ''},
+            'team2': {'leader_id': '7196174452', 'members': [], 'extra_name': '☮ Archangels ☮', 'points': ''},
+            'team3': {'leader_id': '6824897749', 'members': [], 'extra_name': '🦦 Otters club 🦦', 'points': ''},
+            'team4': {'leader_id': '5821282564', 'members': [], 'extra_name':'💰 The Billionaires Club 💰', 'points': ''},
+            'team5': {'leader_id': '5920451104', 'members': [], 'extra_name': '👑Imperial🦇', 'points': ''}
         }
