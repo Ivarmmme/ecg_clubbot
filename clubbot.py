@@ -330,55 +330,50 @@ async def team_list(update: Update, context: ContextTypes.DEFAULT_TYPE):
         print(f"Error: {e}")
 
 
-async def list_teams(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    team_membersX = load_data()
-    team_buttons = []
-    for team_name, team_info in team_membersX.items():
-        button_text = f"{team_name} - {team_info.get('extra_name', '')}"
-        team_buttons.append([InlineKeyboardButton(button_text, callback_data=f"team_pick_{team_name}")])
-    
-    # Create inline keyboard markup
-    reply_markup = InlineKeyboardMarkup(team_buttons)
-    
-    # Send message with team selection buttons
-    await update.message.reply_text("Select a team to join:", reply_markup=reply_markup)
-
 team_picked_by_user = {}
+
+async def list_teams(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    try:
+        # Load team data from the database
+        team_membersX = load_data()
+        
+        # Generate team selection buttons
+        team_buttons = []
+        for team_name, team_info in team_membersX.items():
+            button_text = f"{team_name} - {team_info.get('extra_name', '')}"
+            team_buttons.append([InlineKeyboardButton(button_text, callback_data=f"team_pick_{team_name}")])
+        
+        # Create inline keyboard markup
+        reply_markup = InlineKeyboardMarkup(team_buttons)
+        
+        # Send message with team selection buttons
+        await update.message.reply_text("Select a team to view its members:", reply_markup=reply_markup)
+    except Exception as e:
+        print(f"Error: {e}")
 
 async def handle_team_pick_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     user_id = str(query.from_user.id)
     data = query.data.split('_')
-    action = data[0]  # Extract the action from the callback data
     team_name = data[-1]
-    
-    # Load team data from the database
-    team_membersX = load_data()
-    
-    if action != "team_pick":  # Check if the action is team picking
-        return
-    
-    # Check if the selected team exists
-    if team_name not in team_membersX:
-        await query.answer("Invalid team selection.")
-        return
     
     # Check if the user has already picked a team
     if user_id in team_picked_by_user:
         await query.answer("You have already picked a team.")
         return
     
-    # Mark team as picked for the user
+    # Store the picked team for the user
     team_picked_by_user[user_id] = team_name
     
-    # Get the original message ID to edit
-    message_id = team_picked_by_user[user_id]['message_id']
+    # Load team data from the database
+    team_membersX = load_data()
     
     # Generate team info message
     team_info_message = generate_team_info_message(team_name, team_membersX)
     
     # Edit the original message with team info
     await query.message.edit_text(team_info_message, parse_mode=ParseMode.MARKDOWN)
+
 
 def generate_team_info_message(team_name, team_membersX):
     team_info = team_membersX.get(team_name)
