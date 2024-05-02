@@ -459,6 +459,46 @@ async def list_teams_with_points(update: Update, context: ContextTypes.DEFAULT_T
     except BadRequest as e:
         print(f"Error: {e}")
 
+async def notify_members(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    try:
+        # Fetch the leader's user ID
+        leader_id = update.message.from_user.id
+        team_membersX = load_data()
+        
+        # Identify the leader's team
+        team_name = None
+        for name, info in team_membersX.items():
+            if info['leader_id'] == str(leader_id):
+                team_name = name
+                break
+
+        if team_name:
+            team_info = team_membersX[team_name]
+            members = team_info['members']
+            
+            # Prepare mentions for all members
+            member_mentions = []
+            for member_id in members:
+                member = await context.bot.get_chat_member(update.effective_chat.id, member_id)
+                user = member.user
+                name = f"{user.first_name} {user.last_name if user.last_name else ''}".strip()
+                member_mentions.append(f"[{name}](tg://user?id={user.id})")
+            
+            # Notification message
+            notification_text = ' '.join(context.args)
+            
+            # Compose the message
+            response = f"{', '.join(member_mentions)}\n\nAlert: {notification_text}"
+            
+            # Send the message
+            await update.message.reply_text(response, parse_mode=ParseMode.MARKDOWN)
+        else:
+            await update.message.reply_text("You are not the leader of any team.")
+    except Exception as e:
+        print(f"Error: {e}")
+        await update.message.reply_text("Failed to send notification.")
+        
+
 def main():
     # Get the bot token from an environment variable
     bot_token = os.environ.get("BOT_TOKEN")  # Replace with your actual environment variable name
@@ -483,7 +523,7 @@ def main():
     application.add_handler(CommandHandler('cut', cutpoints_command))
     application.add_handler(CallbackQueryHandler(cutpoints_team_selection, pattern=r'^cutpoints_'))
     application.add_handler(CommandHandler('ranks', list_teams_with_points))
-    
+    application.add_handler(CommandHandler('notify', notify_members))
     application.run_polling()
 
 if __name__ == '__main__':
