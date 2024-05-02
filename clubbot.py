@@ -459,93 +459,6 @@ async def list_teams_with_points(update: Update, context: ContextTypes.DEFAULT_T
     except BadRequest as e:
         print(f"Error: {e}")
 
-
-
-# Function to handle the /send command
-async def send_points(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    # Extract user ID and points from the command
-    user_id = str(update.effective_user.id)
-    text = update.message.text.split()
-    if len(text) != 2:
-        await update.message.reply_text("Usage: /send <count>")
-        return
-    
-    points_to_send = text[1]
-    
-    # Load team data from the database
-    team_membersX = load_data()
-    
-    # Find which team the user is a leader of
-    leader_team = None
-    for team, data in team_membersX.items():
-        if data['leader_id'] == user_id:
-            leader_team = team
-            break
-    
-    if not leader_team:
-        await update.message.reply_text("You are not authorized to send points.")
-        return
-    
-    # Check if the leader's team has enough points to send
-    if int(team_membersX[leader_team]['points']) < int(points_to_send):
-        await update.message.reply_text("You don't have enough points to send.")
-        return
-    
-    # Generate team selection buttons (excluding the leader's own team)
-    team_buttons = []
-    for team_name, team_info in team_membersX.items():
-        if team_name != leader_team:
-            button_text = f"{team_name} - {team_info.get('extra_name', '')}"
-            team_buttons.append([InlineKeyboardButton(button_text, callback_data=f"send_points_{team_name}_{points_to_send}")])
-    
-    # Create inline keyboard markup
-    reply_markup = InlineKeyboardMarkup(team_buttons)
-    
-    # Send message with team selection buttons
-    await update.message.reply_text(f"Select a team to send {points_to_send} points:", reply_markup=reply_markup)
-
-# Function to handle the callback for sending points
-async def handle_send_points_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query = update.callback_query
-    data = query.data.split('_')
-    
-    # Check if the data has at least two elements
-    if len(data) < 3:
-        await query.answer("Invalid data format.")
-        return
-    
-    # Extract team names and points from the data
-    receiving_team_name = data[1]
-    points_to_receive = int(data[2])  # Convert the third element to an integer
-    
-    # Load team data from the database
-    team_membersX = load_data()
-    
-    # Get the sender's team name from the callback query
-    sender_team = None
-    user_id = str(query.from_user.id)
-    for team, data in team_membersX.items():
-        if data['leader_id'] == user_id:
-            sender_team = team
-            break
-    
-    # Check if the sender's team has enough points to send
-    if int(team_membersX[sender_team]['points']) < points_to_send:
-        await query.answer("You don't have enough points to send.")
-        return
-    
-    # Deduct points from the sender's team
-    team_membersX[sender_team]['points'] = str(int(team_membersX[sender_team]['points']) - points_to_send)
-    
-    # Add points to the receiving team
-    team_membersX[receiving_team]['points'] = str(int(team_membersX[receiving_team]['points']) + points_to_send)
-    
-    # Save the updated team data to the database
-    save_data(team_membersX)
-    
-    # Inform the users about the points transfer
-    await query.edit_message_text(f"{points_to_send} points have been sent to {receiving_team}.")
-
 def main():
     # Get the bot token from an environment variable
     bot_token = os.environ.get("BOT_TOKEN")  # Replace with your actual environment variable name
@@ -570,13 +483,7 @@ def main():
     application.add_handler(CommandHandler('cut', cutpoints_command))
     application.add_handler(CallbackQueryHandler(cutpoints_team_selection, pattern=r'^cutpoints_'))
     application.add_handler(CommandHandler('ranks', list_teams_with_points))
-    # Add command handler for /send
-    application.add_handler(CommandHandler("send", send_points))
-
-# Add callback query handler for sending points
-    application.add_handler(CallbackQueryHandler(handle_send_points_callback, pattern=r'^send_points_'))
-
-
+    
     application.run_polling()
 
 if __name__ == '__main__':
