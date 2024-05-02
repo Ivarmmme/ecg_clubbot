@@ -475,8 +475,8 @@ async def notify_members(update: Update, context: ContextTypes.DEFAULT_TYPE):
             notification_message = ' '.join(context.args)
             
             member_mentions = [
-                f"[{member_info['first_name']} {member_info['last_name'] if member_info['last_name'] else ''}](tg://user?id={member_id})"
-                for member_id, member_info in members.items()
+                f"[{member_info['first_name']} {member_info['last_name'] if member_info['last_name'] else ''}](tg://user?id={member_info['id']})"
+                for member_info in members
             ]
             
             leader_name = update.effective_user.username
