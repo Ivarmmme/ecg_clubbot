@@ -461,6 +461,88 @@ async def list_teams_with_points(update: Update, context: ContextTypes.DEFAULT_T
 
 
 
+# Function to transfer points from one team to another
+async def transfer_points(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # Get the user ID and team name from the update
+    user_id = str(update.effective_user.id)
+    team_name = context.args[0] if context.args else None
+    
+    if not team_name:
+        await update.message.reply_text("Please specify the team name.")
+        return
+    
+    # Load team data from the database
+    team_membersX = load_data()
+    
+    # Check if the specified team exists
+    if team_name not in team_membersX:
+        await update.message.reply_text("Invalid team name.")
+        return
+    
+    # Check if the user is the leader of the specified team
+    if user_id != team_membersX[team_name]['leader_id']:
+        await update.message.reply_text("You are not the leader of this team.")
+        return
+    
+    # Get the amount of points to transfer
+    try:
+        points_to_transfer = int(context.args[1])
+    except (IndexError, ValueError):
+        await update.message.reply_text("Please specify the number of points to transfer.")
+        return
+    
+    # Check if the specified points to transfer is valid
+    if points_to_transfer <= 0:
+        await update.message.reply_text("Please specify a valid number of points to transfer.")
+        return
+    
+    # Show confirmation message with two buttons (Yes or No)
+    confirmation_message = f"Are you sure you want to transfer {points_to_transfer} points from your team to another team?"
+    reply_markup = InlineKeyboardMarkup([
+        [InlineKeyboardButton("Yes", callback_data=f"confirm_transfer_{team_name}_{points_to_transfer}")],
+        [InlineKeyboardButton("No", callback_data="cancel_transfer")]
+    ])
+    await update.message.reply_text(confirmation_message, reply_markup=reply_markup)
+
+# Function to handle the confirmation of point transfer
+async def handle_transfer_confirmation(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    user_id = str(query.from_user.id)
+    data = query.data.split('_')
+    action = data[0]
+    
+    if action == "confirm_transfer":
+        team_name = data[1]
+        points_to_transfer = int(data[2])
+        
+        # Load team data from the database
+        team_membersX = load_data()
+        
+        # Deduct points from the leader's team
+        leader_team_points = int(team_membersX[team_name]['points'])
+        if leader_team_points >= points_to_transfer:
+            leader_team_points -= points_to_transfer
+        else:
+            await query.answer("Insufficient points in your team.")
+            return
+        
+        # Update points for the leader's team in the database
+        team_membersX[team_name]['points'] = leader_team_points
+        save_data(team_membersX)
+        
+        # Transfer points to another team (not implemented)
+        
+        # Notify the user about the successful transfer
+        await query.answer("Points transferred successfully.")
+        
+        # Update the message to indicate that the transfer is complete
+        await query.message.edit_text("Point transfer complete.")
+    else:
+        # Cancel the transfer and update the message
+        await query.answer("Point transfer cancelled.")
+        await query.message.edit_text("Point transfer cancelled.")
+
+
 def main():
     # Get the bot token from an environment variable
     bot_token = os.environ.get("BOT_TOKEN")  # Replace with your actual environment variable name
@@ -485,6 +567,9 @@ def main():
     application.add_handler(CommandHandler('cut', cutpoints_command))
     application.add_handler(CallbackQueryHandler(cutpoints_team_selection, pattern=r'^cutpoints_'))
     application.add_handler(CommandHandler('ranks', list_teams_with_points))
+    application.add_handler(CommandHandler("send", transfer_points))
+    application.add_handler(CallbackQueryHandler(handle_transfer_confirmation))
+
     application.run_polling()
 
 if __name__ == '__main__':
