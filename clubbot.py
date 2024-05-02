@@ -461,87 +461,83 @@ async def list_teams_with_points(update: Update, context: ContextTypes.DEFAULT_T
 
 
 
-# Function to transfer points from one team to another
-async def transfer_points(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    # Get the user ID and team name from the update
+# Function to handle the /send command
+async def send_points(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # Extract user ID and points from the command
     user_id = str(update.effective_user.id)
-    team_name = context.args[0] if context.args else None
-    
-    if not team_name:
-        await update.message.reply_text("Please specify the team name.")
+    text = update.message.text.split()
+    if len(text) != 2:
+        await update.message.reply_text("Usage: /send <count>")
         return
+    
+    points_to_send = text[1]
     
     # Load team data from the database
     team_membersX = load_data()
     
-    # Check if the specified team exists
-    if team_name not in team_membersX:
-        await update.message.reply_text("Invalid team name.")
+    # Find which team the user is a leader of
+    leader_team = None
+    for team, data in team_membersX.items():
+        if data['leader_id'] == user_id:
+            leader_team = team
+            break
+    
+    if not leader_team:
+        await update.message.reply_text("You are not authorized to send points.")
         return
     
-    # Check if the user is the leader of the specified team
-    if user_id != team_membersX[team_name]['leader_id']:
-        await update.message.reply_text("You are not the leader of this team.")
+    # Check if the leader's team has enough points to send
+    if int(team_membersX[leader_team]['points']) < int(points_to_send):
+        await update.message.reply_text("You don't have enough points to send.")
         return
     
-    # Get the amount of points to transfer
-    try:
-        points_to_transfer = int(context.args[1])
-    except (IndexError, ValueError):
-        await update.message.reply_text("Please specify the number of points to transfer.")
-        return
+    # Generate team selection buttons (excluding the leader's own team)
+    team_buttons = []
+    for team_name, team_info in team_membersX.items():
+        if team_name != leader_team:
+            button_text = f"{team_name} - {team_info.get('extra_name', '')}"
+            team_buttons.append([InlineKeyboardButton(button_text, callback_data=f"send_points_{team_name}_{points_to_send}")])
     
-    # Check if the specified points to transfer is valid
-    if points_to_transfer <= 0:
-        await update.message.reply_text("Please specify a valid number of points to transfer.")
-        return
+    # Create inline keyboard markup
+    reply_markup = InlineKeyboardMarkup(team_buttons)
     
-    # Show confirmation message with two buttons (Yes or No)
-    confirmation_message = f"Are you sure you want to transfer {points_to_transfer} points from your team to another team?"
-    reply_markup = InlineKeyboardMarkup([
-        [InlineKeyboardButton("Yes", callback_data=f"confirm_transfer_{team_name}_{points_to_transfer}")],
-        [InlineKeyboardButton("No", callback_data="cancel_transfer")]
-    ])
-    await update.message.reply_text(confirmation_message, reply_markup=reply_markup)
+    # Send message with team selection buttons
+    await update.message.reply_text(f"Select a team to send {points_to_send} points:", reply_markup=reply_markup)
 
-# Function to handle the confirmation of point transfer
-async def handle_transfer_confirmation(update: Update, context: ContextTypes.DEFAULT_TYPE):
+# Function to handle the callback for sending points
+async def handle_send_points_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    user_id = str(query.from_user.id)
     data = query.data.split('_')
-    action = data[0]
+    receiving_team = data[1]
+    points_to_send = int(data[2])
     
-    if action == "confirm_transfer":
-        team_name = data[1]
-        points_to_transfer = int(data[2])
-        
-        # Load team data from the database
-        team_membersX = load_data()
-        
-        # Deduct points from the leader's team
-        leader_team_points = int(team_membersX[team_name]['points'])
-        if leader_team_points >= points_to_transfer:
-            leader_team_points -= points_to_transfer
-        else:
-            await query.answer("Insufficient points in your team.")
-            return
-        
-        # Update points for the leader's team in the database
-        team_membersX[team_name]['points'] = leader_team_points
-        save_data(team_membersX)
-        
-        # Transfer points to another team (not implemented)
-        
-        # Notify the user about the successful transfer
-        await query.answer("Points transferred successfully.")
-        
-        # Update the message to indicate that the transfer is complete
-        await query.message.edit_text("Point transfer complete.")
-    else:
-        # Cancel the transfer and update the message
-        await query.answer("Point transfer cancelled.")
-        await query.message.edit_text("Point transfer cancelled.")
-
+    # Load team data from the database
+    team_membersX = load_data()
+    
+    # Get the sender's team name from the callback query
+    sender_team = None
+    user_id = str(query.from_user.id)
+    for team, data in team_membersX.items():
+        if data['leader_id'] == user_id:
+            sender_team = team
+            break
+    
+    # Check if the sender's team has enough points to send
+    if int(team_membersX[sender_team]['points']) < points_to_send:
+        await query.answer("You don't have enough points to send.")
+        return
+    
+    # Deduct points from the sender's team
+    team_membersX[sender_team]['points'] = str(int(team_membersX[sender_team]['points']) - points_to_send)
+    
+    # Add points to the receiving team
+    team_membersX[receiving_team]['points'] = str(int(team_membersX[receiving_team]['points']) + points_to_send)
+    
+    # Save the updated team data to the database
+    save_data(team_membersX)
+    
+    # Inform the users about the points transfer
+    await query.edit_message_text(f"{points_to_send} points have been sent to {receiving_team}.")
 
 def main():
     # Get the bot token from an environment variable
@@ -567,8 +563,12 @@ def main():
     application.add_handler(CommandHandler('cut', cutpoints_command))
     application.add_handler(CallbackQueryHandler(cutpoints_team_selection, pattern=r'^cutpoints_'))
     application.add_handler(CommandHandler('ranks', list_teams_with_points))
-    application.add_handler(CommandHandler("send", transfer_points))
-    application.add_handler(CallbackQueryHandler(handle_transfer_confirmation))
+    # Add command handler for /send
+    application.add_handler(CommandHandler("send", send_points))
+
+# Add callback query handler for sending points
+    application.add_handler(CallbackQueryHandler(handle_send_points_callback, pattern=r'^send_points_'))
+
 
     application.run_polling()
 
