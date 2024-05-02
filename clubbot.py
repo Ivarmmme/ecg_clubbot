@@ -489,6 +489,7 @@ async def notify_members(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await update.message.reply_text("You are not a leader of any team.")
     except Exception as e:
         print(f"Error: {e}")
+
         
 def main():
     # Get the bot token from an environment variable
