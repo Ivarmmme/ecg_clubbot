@@ -459,25 +459,42 @@ async def list_teams_with_points(update: Update, context: ContextTypes.DEFAULT_T
     except BadRequest as e:
         print(f"Error: {e}")
 
-async def notify_members(update: Update, context: CallbackContext):
+async def notify_members(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
-        leader_id = update.effective_user.id
-        team_name, leader_mention = get_leader_info(leader_id)  # Implement this function to get team name and leader mention
-        notification_message = ' '.join(context.args)
+        user_id = update.effective_user.id
+        team_name = None
+        team_membersX = load_data()
+        for team, data in team_membersX.items():
+            if data['leader_id'] == user_id:
+                team_name = team
+                break
         
-        team_membersX = load_data().get(team_name, {}).get('members', [])
-        
-        member_mentions = [
-            f"[{member.first_name}](tg://user?id={member.id})"
-            for member in team_members
-        ]
-        
-        notification_text = f"All attention:\n{' '.join(member_mentions)}\n\nAlert from {leader_mention}: {notification_message}"
-        
-        await context.bot.send_message(update.effective_chat.id, notification_text, parse_mode=ParseMode.MARKDOWN)
+        if team_name:
+            team_info = team_membersX[team_name]
+            leader_id = team_info['leader_id']
+            members = team_info['members']
+            notification_message = ' '.join(context.args)
+            
+            member_mentions = [
+                await context.bot.get_chat_member(update.effective_chat.id, member)
+                for member in members
+            ]
+            
+            member_usernames = [
+                member_mention.user.username
+                for member_mention in member_mentions
+                if member_mention.user.username is not None
+            ]
+            
+            response = f"Alert: {notification_message}\n"
+            response += "All attention here: " + ' '.join(member_usernames)
+            
+            await context.bot.send_message(update.effective_chat.id, response)
+        else:
+            await update.message.reply_text("You are not a leader of any team.")
     except Exception as e:
         print(f"Error: {e}")
-        await update.message.reply_text("Failed to send notification.")
+
 
         
 
