@@ -490,6 +490,7 @@ async def notify_members(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         print(f"Error: {e}")
 
+
         
 def main():
     # Get the bot token from an environment variable
