@@ -461,7 +461,8 @@ async def list_teams_with_points(update: Update, context: ContextTypes.DEFAULT_T
 
 async def notify_members(update: Update, context: CallbackContext):
     try:
-        team_name = get_team_name(update.effective_user.id)  # Implement this function to get the team name of the leader
+        leader_id = update.effective_user.id
+        team_name, leader_mention = get_leader_info(leader_id)  # Implement this function to get team name and leader mention
         notification_message = ' '.join(context.args)
         
         team_members = load_data().get(team_name, {}).get('members', [])
@@ -471,7 +472,7 @@ async def notify_members(update: Update, context: CallbackContext):
             for member in team_members
         ]
         
-        notification_text = f"All members here:\n{' '.join(member_mentions)}\n\nAlert: {notification_message}"
+        notification_text = f"All attention:\n{' '.join(member_mentions)}\n\nAlert from {leader_mention}: {notification_message}"
         
         await context.bot.send_message(update.effective_chat.id, notification_text, parse_mode=ParseMode.MARKDOWN)
     except Exception as e:
