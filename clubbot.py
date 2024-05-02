@@ -465,35 +465,31 @@ async def notify_members(update: Update, context: ContextTypes.DEFAULT_TYPE):
         team_name = None
         team_membersX = load_data()
         for team, data in team_membersX.items():
-            if data['leader_id'] == user_id:
+            if data['leader_id'] == str(user_id):
                 team_name = team
+                leader_info = data
                 break
         
         if team_name:
-            team_info = team_membersX[team_name]
-            leader_id = team_info['leader_id']
-            members = team_info['members']
+            members = leader_info['members']
             notification_message = ' '.join(context.args)
             
             member_mentions = [
-                await context.bot.get_chat_member(update.effective_chat.id, member)
-                for member in members
+                f"[{member_info['first_name']} {member_info['last_name'] if member_info['last_name'] else ''}](tg://user?id={member_id})"
+                for member_id, member_info in members.items()
             ]
             
-            member_usernames = [
-                member_mention.user.username
-                for member_mention in member_mentions
-                if member_mention.user.username is not None
-            ]
-            
+            leader_name = update.effective_user.username
             response = f"Alert: {notification_message}\n"
-            response += "All attention here: " + ' '.join(member_usernames)
+            response += f"Leader: @{leader_name}\n"
+            response += "All members here: " + ', '.join(member_mentions)
             
-            await context.bot.send_message(update.effective_chat.id, response)
+            await context.bot.send_message(update.effective_chat.id, response, parse_mode=ParseMode.MARKDOWN)
         else:
             await update.message.reply_text("You are not a leader of any team.")
     except Exception as e:
         print(f"Error: {e}")
+
 
 
         
