@@ -509,24 +509,14 @@ async def handle_send_points_callback(update: Update, context: ContextTypes.DEFA
     query = update.callback_query
     data = query.data.split('_')
     
-    # Check if the data has at least three elements
+    # Check if the data has at least two elements
     if len(data) < 3:
         await query.answer("Invalid data format.")
         return
     
     # Extract team names and points from the data
-    sending_team_name = data[1]
-    points_to_send_str = data[2]
-    
-    # Check if points_to_send_str is a valid integer
-    if not points_to_send_str.isdigit():
-        await query.answer("Invalid number of points.")
-        return
-    
-    # Convert points_to_send_str to an integer
-    points_to_send = int(points_to_send_str)
-    
-    # Proceed with the rest of the function...
+    receiving_team_name = data[1]
+    points_to_receive = int(data[2])  # Convert the third element to an integer
     
     # Load team data from the database
     team_membersX = load_data()
