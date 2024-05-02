@@ -465,7 +465,7 @@ async def notify_members(update: Update, context: CallbackContext):
         team_name, leader_mention = get_leader_info(leader_id)  # Implement this function to get team name and leader mention
         notification_message = ' '.join(context.args)
         
-        team_members = load_data().get(team_name, {}).get('members', [])
+        team_membersX = load_data().get(team_name, {}).get('members', [])
         
         member_mentions = [
             f"[{member.first_name}](tg://user?id={member.id})"
