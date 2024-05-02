@@ -475,7 +475,7 @@ async def notify_members(update: Update, context: ContextTypes.DEFAULT_TYPE):
             notification_message = ' '.join(context.args)
             
             member_mentions = [
-                f"[{member_info['first_name']} {member_info['last_name'] if member_info['last_name'] else ''}](tg://user?id={member_info['id']})"
+                f"[{member_info['first_name']} {member_info.get('last_name', '')}](tg://user?id={member_info['id']})"
                 for member_info in members
             ]
             
@@ -489,12 +489,7 @@ async def notify_members(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await update.message.reply_text("You are not a leader of any team.")
     except Exception as e:
         print(f"Error: {e}")
-
-
-
-
         
-
 def main():
     # Get the bot token from an environment variable
     bot_token = os.environ.get("BOT_TOKEN")  # Replace with your actual environment variable name
