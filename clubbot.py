@@ -5,6 +5,43 @@ from telegram.constants import ParseMode
 from telegram.ext import Application, CommandHandler, ContextTypes, CallbackQueryHandler, MessageHandler, CallbackContext
 from database import save_data, load_data
 
+async def notify_team_members(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = str(update.effective_user.id)
+    
+    # Find out which team the user is a leader of
+    team_name = None
+    team_membersX = load_data()
+    for team, data in team_membersX.items():
+        if data['leader_id'] == user_id:
+            team_name = team
+            break
+    
+    if not team_name:
+        await update.message.reply_text("You are not authorized to send notifications to your team.")
+        return
+    
+    # Check if the message contains text
+    text = context.args_str.strip()
+    if not text:
+        await update.message.reply_text("Please provide a message to send to your team members.")
+        return
+    
+    # Get team members' first names and last names
+    member_names = []
+    for member_id in team_membersX[team_name]['members']:
+        try:
+            member = await context.bot.get_chat_member(update.effective_chat.id, member_id)
+            member_names.append(f"{member.user.first_name} {member.user.last_name}")
+        except Exception as e:
+            print(f"Error retrieving member info: {e}")
+    
+    # Prepare the notification message
+    notification_message = f"{text}\n\nTeam Members:\n"
+    notification_message += "\n".join(member_names) if member_names else "No members."
+    
+    # Send the notification message to the team leader
+    await update.message.reply_text(notification_message)
+
 # Command handler for /points
 async def points_command(update: Update, context):
     # Check if the user is a sudo user
@@ -458,39 +495,6 @@ async def list_teams_with_points(update: Update, context: ContextTypes.DEFAULT_T
     
     except BadRequest as e:
         print(f"Error: {e}")
-
-async def notify_members(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    try:
-        user_id = update.effective_user.id
-        team_name = None
-        team_membersX = load_data()
-        for team, data in team_membersX.items():
-            if data['leader_id'] == str(user_id):
-                team_name = team
-                leader_info = data
-                break
-        
-        if team_name:
-            members = leader_info['members']
-            notification_message = ' '.join(context.args)
-            
-            member_mentions = [
-                f"[{member_info['first_name']} {member_info.get('last_name', '')}](tg://user?id={member_info['id']})"
-                for member_info in members
-            ]
-            
-            leader_name = update.effective_user.username
-            response = f"Alert: {notification_message}\n"
-            response += f"Leader: @{leader_name}\n"
-            response += "All members here: " + ', '.join(member_mentions)
-            
-            await context.bot.send_message(update.effective_chat.id, response, parse_mode=ParseMode.MARKDOWN)
-        else:
-            await update.message.reply_text("You are not a leader of any team.")
-    except Exception as e:
-        print(f"Error: {e}")
-
-
         
 def main():
     # Get the bot token from an environment variable
@@ -516,7 +520,7 @@ def main():
     application.add_handler(CommandHandler('cut', cutpoints_command))
     application.add_handler(CallbackQueryHandler(cutpoints_team_selection, pattern=r'^cutpoints_'))
     application.add_handler(CommandHandler('ranks', list_teams_with_points))
-    application.add_handler(CommandHandler('notify', notify_members))
+    application.add_handler(CommandHandler("notify", notify_team_members))
     application.run_polling()
 
 if __name__ == '__main__':
