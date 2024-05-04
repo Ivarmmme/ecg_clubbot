@@ -21,10 +21,11 @@ async def notify_team_members(update: Update, context: ContextTypes.DEFAULT_TYPE
         return
     
     # Check if the message contains text
-    text = context.args_str.strip()
-    if not text:
+    if not context.args:
         await update.message.reply_text("Please provide a message to send to your team members.")
         return
+    
+    text = ' '.join(context.args)  # Join command arguments into a single string
     
     # Get team members' first names and last names
     member_names = []
