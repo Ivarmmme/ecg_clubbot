@@ -32,7 +32,12 @@ async def notify_team_members(update: Update, context: ContextTypes.DEFAULT_TYPE
     for member_id in team_membersX[team_name]['members']:
         try:
             member = await context.bot.get_chat_member(update.effective_chat.id, member_id)
-            member_name = f"[{member.user.first_name} {member.user.last_name}](tg://user?id={member.user.id})"
+            first_name = member.user.first_name
+            last_name = member.user.last_name
+            if last_name:
+                member_name = f"[{first_name} {last_name}](tg://user?id={member.user.id})"
+            else:
+                member_name = f"[{first_name}](tg://user?id={member.user.id})"
             member_mentions.append(member_name)
         except Exception as e:
             print(f"Error retrieving member info: {e}")
@@ -43,6 +48,7 @@ async def notify_team_members(update: Update, context: ContextTypes.DEFAULT_TYPE
     
     # Send the notification message to the team leader
     await context.bot.send_message(update.effective_chat.id, notification_message, parse_mode=ParseMode.MARKDOWN)
+
 
 # Command handler for /points
 async def points_command(update: Update, context):
