@@ -27,18 +27,28 @@ async def notify_team_members(update: Update, context: ContextTypes.DEFAULT_TYPE
     
     text = ' '.join(context.args)  # Join command arguments into a single string
     
-    # Get team members' first names and last names with mentions
+    # Get team members' names with mentions
     member_mentions = []
     for member_id in team_membersX[team_name]['members']:
-    try:
-        member = await context.bot.get_chat_member(update.effective_chat.id, member_id)
-        if member.user.last_name:
-            member_name = f"[{member.user.first_name} {member.user.last_name}](tg://user?id={member.user.id})"
-        else:
-            member_name = f"[{member.user.first_name}](tg://user?id={member.user.id})"
-        member_mentions.append(member_name)
-    except Exception as e:
-        print(f"Error retrieving member info: {e}")
+        try:
+            member = await context.bot.get_chat_member(update.effective_chat.id, member_id)
+            first_name = member.user.first_name
+            last_name = member.user.last_name if member.user.last_name else ''
+            if last_name:
+                member_name = f"[{first_name} {last_name}](tg://user?id={member.user.id})"
+            else:
+                member_name = f"[{first_name}](tg://user?id={member.user.id})"
+            member_mentions.append(member_name)
+        except Exception as e:
+            print(f"Error retrieving member info: {e}")
+    
+    # Prepare the notification message
+    notification_message = f"{text}\n\nTeam Members:\n"
+    notification_message += "\n".join(member_mentions) if member_mentions else "No members."
+    
+    # Send the notification message to the team leader
+    await context.bot.send_message(update.effective_chat.id, notification_message, parse_mode=ParseMode.MARKDOWN)
+
 
 # Replace last names with blanks if they are None
 member_mentions = [mention.replace('None', '') for mention in member_mentions]
