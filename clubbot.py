@@ -17,12 +17,12 @@ async def notify_team_members(update: Update, context: ContextTypes.DEFAULT_TYPE
             break
     
     if not team_name:
-        await update.message.reply_text("You are not authorized to send notifications to your team.")
+        await context.bot.send_message(update.effective_chat.id, "You are not authorized to send notifications to your team.")
         return
     
     # Check if the message contains text
     if not context.args:
-        await update.message.reply_text("Please provide a message to send to your team members.")
+        await context.bot.send_message(update.effective_chat.id, "Please provide a message to send to your team members.")
         return
     
     text = ' '.join(context.args)  # Join command arguments into a single string
@@ -32,7 +32,10 @@ async def notify_team_members(update: Update, context: ContextTypes.DEFAULT_TYPE
     for member_id in team_membersX[team_name]['members']:
         try:
             member = await context.bot.get_chat_member(update.effective_chat.id, member_id)
-            member_names.append(f"{member.user.first_name} {member.user.last_name}")
+            first_name = member.user.first_name
+            last_name = member.user.last_name if member.user.last_name else ''
+            full_name = f"{first_name} {last_name}".strip()
+            member_names.append(full_name)
         except Exception as e:
             print(f"Error retrieving member info: {e}")
     
@@ -41,7 +44,7 @@ async def notify_team_members(update: Update, context: ContextTypes.DEFAULT_TYPE
     notification_message += "\n".join(member_names) if member_names else "No members."
     
     # Send the notification message to the team leader
-    await update.message.reply_text(notification_message)
+    await context.bot.send_message(update.effective_chat.id, notification_message)
 
 # Command handler for /points
 async def points_command(update: Update, context):
