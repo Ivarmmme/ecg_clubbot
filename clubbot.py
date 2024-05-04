@@ -44,18 +44,6 @@ async def notify_team_members(update: Update, context: ContextTypes.DEFAULT_TYPE
     # Send the notification message to the team leader
     await context.bot.send_message(update.effective_chat.id, notification_message, parse_mode=ParseMode.MARKDOWN)
 
-
-
-# Replace last names with blanks if they are None
-member_mentions = [mention.replace('None', '') for mention in member_mentions]
-    
-    # Prepare the notification message
-    notification_message = f"{text}\n\nTeam Members:\n"
-    notification_message += "\n".join(member_mentions) if member_mentions else "No members."
-    
-    # Send the notification message to the team leader
-    await context.bot.send_message(update.effective_chat.id, notification_message, parse_mode=ParseMode.MARKDOWN)
-
 # Command handler for /points
 async def points_command(update: Update, context):
     # Check if the user is a sudo user
