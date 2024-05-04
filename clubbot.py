@@ -50,6 +50,7 @@ async def notify_team_members(update: Update, context: ContextTypes.DEFAULT_TYPE
     await context.bot.send_message(update.effective_chat.id, notification_message, parse_mode=ParseMode.MARKDOWN)
 
 
+
 # Replace last names with blanks if they are None
 member_mentions = [mention.replace('None', '') for mention in member_mentions]
     
