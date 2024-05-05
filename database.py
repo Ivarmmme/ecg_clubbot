@@ -23,12 +23,17 @@ def save_data(team_members):
 def load_data():
     data = collection.find_one({})
     if data:
-        return data.get("team_membersX", {})
+        teams_data = data.get("team_membersX", {})
+        # Add the message_count field to each team if it doesn't exist
+        for team_name, team_info in teams_data.items():
+            team_info.setdefault('message_count', 0)  # Set default value of message_count to 0
+        return teams_data
     else:
         return {
-    'team1': {'leader_id': '6369933143', 'members': [], 'extra_name': '👁️⃤ Goated Club', 'points': '', 'message_count': 0},
-    'team2': {'leader_id': '7196174452', 'members': [], 'extra_name': '☮ Archangels ☮', 'points': '', 'message_count': 0},
-    'team3': {'leader_id': '6824897749', 'members': [], 'extra_name': '🦦 Otters club 🦦', 'points': '', 'message_count': 0},
-    'team4': {'leader_id': '5821282564', 'members': [], 'extra_name':'💰 The Billionaires Club 💰', 'points': '', 'message_count': 0},
-    'team5': {'leader_id': '5920451104', 'members': [], 'extra_name': '👑Imperial🦇', 'points': '', 'message_count': 0}
-}
+            'team1': {'leader_id': '6369933143', 'members': [], 'extra_name': '👁️⃤ Goated Club', 'message_count': 0},
+            'team2': {'leader_id': '7196174452', 'members': [], 'extra_name': '☮ Archangels ☮', 'message_count': 0},
+            'team3': {'leader_id': '6824897749', 'members': [], 'extra_name': '🦦 Otters club 🦦', 'message_count': 0},
+            'team4': {'leader_id': '5821282564', 'members': [], 'extra_name':'💰 The Billionaires Club 💰', 'message_count': 0},
+            'team5': {'leader_id': '5920451104', 'members': [], 'extra_name': '👑Imperial🦇', 'message_count': 0}
+        }
+
