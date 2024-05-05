@@ -498,7 +498,7 @@ async def list_teams_with_points(update: Update, context: ContextTypes.DEFAULT_T
             extra_name = team_info.get('extra_name', '')
             points = team_info.get('points', 0)
             message_count = team_info.get('message_count', 0)
-            response += f"{extra_name}\nPoints: **{points}**\nMessage Count: **{message_count}**\n\n"
+            response += f"{extra_name}\nPoints: **{points}**\nTotal Messages: **{message_count}**\n\n"
         
         await context.bot.send_message(update.effective_chat.id, response, parse_mode=ParseMode.MARKDOWN)
     
