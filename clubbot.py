@@ -2,7 +2,7 @@ import os
 from telegram.error import BadRequest 
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.constants import ParseMode
-from telegram.ext import Application, CommandHandler, ContextTypes, CallbackQueryHandler, MessageHandler, CallbackContext
+from telegram.ext import Application, CommandHandler, ContextTypes, CallbackQueryHandler, MessageHandler, CallbackContext, filters
 from database import save_data, load_data
 
 async def notify_team_members(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -503,6 +503,29 @@ async def list_teams_with_points(update: Update, context: ContextTypes.DEFAULT_T
     
     except BadRequest as e:
         print(f"Error: {e}")
+
+async def track_messages(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # Extract relevant information from the message
+    user_id = str(update.effective_user.id)
+    user_data = update.effective_user.to_dict()
+    chat_id = update.effective_chat.id
+    
+    # Check if the message is from the specified group
+    specified_group_id = -1001289294178  # Replace with the ID of your specified group
+    if chat_id != specified_group_id:
+        return
+    
+    team_membersX = load_data()
+
+    # Check if the user sending the message is a team member
+    for team_name, team_info in team_membersX.items():
+        if user_id == team_info['leader_id'] or user_id in team_info['members']:
+            # Update the message count for the corresponding team
+            team_info['message_count'] += 1
+            # Save the updated team data to the MongoDB collection
+            save_data(team_membersX)
+            break
+            
         
 def main():
     # Get the bot token from an environment variable
@@ -529,6 +552,7 @@ def main():
     application.add_handler(CallbackQueryHandler(cutpoints_team_selection, pattern=r'^cutpoints_'))
     application.add_handler(CommandHandler('ranks', list_teams_with_points))
     application.add_handler(CommandHandler("notify", notify_team_members))
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, track_messages))
     application.run_polling()
 
 if __name__ == '__main__':
