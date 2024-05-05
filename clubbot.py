@@ -497,9 +497,10 @@ async def list_teams_with_points(update: Update, context: ContextTypes.DEFAULT_T
         for team_name, team_info in team_membersX.items():
             extra_name = team_info.get('extra_name', '')
             points = team_info.get('points', 0)
-            response += f"{extra_name}\n𝖯𝗈𝗂𝗇𝗍𝗌: **{points}**\n\n"
+            message_count = team_info.get('message_count', 0)
+            response += f"{extra_name}\nPoints: **{points}**\nMessage Count: **{message_count}**\n\n"
         
-        await update.message.reply_text(response, parse_mode=ParseMode.MARKDOWN)
+        await context.bot.send_message(update.effective_chat.id, response, parse_mode=ParseMode.MARKDOWN)
     
     except BadRequest as e:
         print(f"Error: {e}")
