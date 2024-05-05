@@ -489,21 +489,6 @@ async def team_list(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except BadRequest as e:
         print(f"Error: {e}")
 
-async def list_teams_with_points(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    try:
-        team_membersX = load_data()
-        
-        response = ""
-        for team_name, team_info in team_membersX.items():
-            extra_name = team_info.get('extra_name', '')
-            points = team_info.get('points', 0)
-            response += f"{extra_name}\n𝖯𝗈𝗂𝗇𝗍𝗌: **{points}**\n\n"
-        
-        await update.message.reply_text(response, parse_mode=ParseMode.MARKDOWN)
-    
-    except BadRequest as e:
-        print(f"Error: {e}")
-
 async def track_messages(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Extract relevant information from the message
     user_id = str(update.effective_user.id)
