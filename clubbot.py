@@ -616,6 +616,7 @@ def main():
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, track_messages))
     # Add command handler for /check command
     application.add_handler(CommandHandler("check", check_membership))
+    application.add_handler(CommandHandler("ch", check_membership))
     application.run_polling()
 
 if __name__ == '__main__':
