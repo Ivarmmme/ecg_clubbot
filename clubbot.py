@@ -526,7 +526,28 @@ async def track_messages(update: Update, context: ContextTypes.DEFAULT_TYPE):
             # Save the updated team data to the MongoDB collection
             save_data(team_membersX)
             break
+
+
+async def convert_messages_to_points():
+    try:
+        team_membersX = load_data()
+        
+        for team_name, team_info in team_membersX.items():
+            message_count = team_info.get('message_count', 0)
+            # Calculate points based on message count
+            points = message_count // 1000 * 10  # 10 points for every 1000 messages
+            remaining_messages = message_count % 1000
+            points += remaining_messages / 1000 * 10  # Additional points for remaining messages
             
+            # Update points for the team
+            team_info['points'] = points
+        
+        # Save the updated team data to the MongoDB collection
+        save_data(team_membersX)
+    
+    except BadRequest as e:
+        print(f"Error: {e}")
+
         
 def main():
     # Get the bot token from an environment variable
