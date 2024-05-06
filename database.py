@@ -33,7 +33,6 @@ def load_data():
             'team1': {'leader_id': '6369933143', 'members': [], 'extra_name': '👁️⃤ Goated Club', 'message_count': 0},
             'team2': {'leader_id': '7196174452', 'members': [], 'extra_name': '☮ Archangels ☮', 'message_count': 0},
             'team3': {'leader_id': '6824897749', 'members': [], 'extra_name': '🦦 Otters club 🦦', 'message_count': 0},
-            'team4': {'leader_id': '5821282564', 'members': [], 'extra_name':'💰 The Billionaires Club 💰', 'message_count': 0},
-            'team5': {'leader_id': '5920451104', 'members': [], 'extra_name': '👑Imperial🦇', 'message_count': 0}
+            'team4': {'leader_id': '5920451104', 'members': [], 'extra_name':'👑Imperial🦇', 'message_count': 0}
         }
 
