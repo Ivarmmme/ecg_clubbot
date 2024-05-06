@@ -5,6 +5,42 @@ from telegram.constants import ParseMode
 from telegram.ext import Application, CommandHandler, ContextTypes, CallbackQueryHandler, MessageHandler, CallbackContext, filters
 from database import save_data, load_data
 
+async def check_membership(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # Check if the command is replied to a message
+    if update.message.reply_to_message:
+        replied_user_id = str(update.message.reply_to_message.from_user.id)
+        
+        team_membersX = load_data()
+        
+        # Check if the replied user is a member of any team
+        is_member = False
+        member_info = None
+        for team_name, team_info in team_membersX.items():
+            if replied_user_id == team_info['leader_id'] or replied_user_id in team_info['members']:
+                is_member = True
+                member_info = team_info
+                break
+        
+        # Prepare response based on membership status
+        if is_member:
+            extra_name = member_info.get('extra_name', '')
+            leader_id = member_info['leader_id']
+            leader_name = None
+            try:
+                leader = await context.bot.get_chat_member(update.effective_chat.id, leader_id)
+                leader_name = f"{leader.user.first_name} {leader.user.last_name if leader.user.last_name else ''}".strip()
+            except Exception as e:
+                print(f"Error: {e}")
+            
+            response = f"This user is a member of {extra_name} team.\nLeader: {leader_name}"
+        else:
+            response = "This user is not a member of any team."
+        
+        # Send the response
+        await context.bot.send_message(update.effective_chat.id, response)
+    else:
+        await update.message.reply_text("Please reply to a message with the /check command to check membership.")
+
 async def notify_team_members(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = str(update.effective_user.id)
     
@@ -575,6 +611,8 @@ def main():
     application.add_handler(CommandHandler('ranks', list_teams_with_points))
     application.add_handler(CommandHandler("notify", notify_team_members))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, track_messages))
+    # Add command handler for /check command
+    application.add_handler(CommandHandler("check", check_membership))
     application.run_polling()
 
 if __name__ == '__main__':
