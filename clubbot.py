@@ -32,7 +32,7 @@ async def check_membership(update: Update, context: ContextTypes.DEFAULT_TYPE):
             except Exception as e:
                 print(f"Error: {e}")
             
-            response = f"This user is a member of {extra_name} team.\nLeader: {leader_name}"
+            response = f"This user is a member of {extra_name}.\nLeader: {leader_name}"
         else:
             response = "This user is not a member of any team."
         
