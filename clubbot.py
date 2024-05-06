@@ -8,7 +8,7 @@ from database import save_data, load_data
 async def check_membership(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Check if the command is replied to a message
     if update.message.reply_to_message:
-        replied_user = update.message.reply_to_message.from_user
+        replied_user_id = str(update.message.reply_to_message.from_user.id)
         
         team_membersX = load_data()
         
@@ -16,7 +16,7 @@ async def check_membership(update: Update, context: ContextTypes.DEFAULT_TYPE):
         is_member = False
         member_info = None
         for team_name, team_info in team_membersX.items():
-            if replied_user.id == team_info['leader_id'] or replied_user.id in team_info['members']:
+            if replied_user_id == team_info['leader_id'] or replied_user_id in team_info['members']:
                 is_member = True
                 member_info = team_info
                 break
@@ -32,9 +32,9 @@ async def check_membership(update: Update, context: ContextTypes.DEFAULT_TYPE):
             except Exception as e:
                 print(f"Error: {e}")
             
-            response = f"{replied_user.first_name} {replied_user.last_name if replied_user.last_name else ''} is a member of {extra_name}.\nLeader: {leader_name}"
+            response = f"This user is a member of {extra_name} team.\nLeader: {leader_name}"
         else:
-            response = f"{replied_user.first_name} {replied_user.last_name if replied_user.last_name else ''} is not a member of any team."
+            response = "This user is not a member of any team."
         
         # Send the response
         await context.bot.send_message(update.effective_chat.id, response)
