@@ -5,38 +5,43 @@ from telegram.constants import ParseMode
 from telegram.ext import Application, CommandHandler, ContextTypes, CallbackQueryHandler, MessageHandler, CallbackContext, filters
 from database import save_data, load_data
 
-async def check_member_status(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    try:
-        reply_to_message = update.message.reply_to_message
-        if reply_to_message:
-            user_id = reply_to_message.from_user.id
-            team_members = load_data()
-
-            found_member = None
-            team_name = ""
-            leader_full_name = ""
-            for team, members in team_members.items():
-                for member in members['members']:
-                    if member['user_id'] == user_id:
-                        found_member = member
-                        team_name = team
-                        leader = members['leader']
-                        leader_full_name = f"{leader['first_name']} {leader.get('last_name', '')}".strip()
-                        break
-                if found_member:
-                    break
-
-            if found_member:
-                user_full_name = f"{found_member['first_name']} {found_member.get('last_name', '')}".strip()
-                extra_name = team_members[team_name].get('extra_name', '')
-                await update.message.reply_text(f"User is a member of the team. Name: {user_full_name}, Team Name: {extra_name}, Team Leader: {leader_full_name}")
-            else:
-                await update.message.reply_text("User is not a member of any team.")
+async def check_membership(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # Check if the command is replied to a message
+    if update.message.reply_to_message:
+        replied_user_id = str(update.message.reply_to_message.from_user.id)
+        
+        team_membersX = load_data()
+        
+        # Check if the replied user is a member of any team
+        is_member = False
+        member_info = None
+        for team_name, team_info in team_membersX.items():
+            if replied_user_id == team_info['leader_id'] or replied_user_id in team_info['members']:
+                is_member = True
+                member_info = team_info
+                break
+        
+        # Prepare response based on membership status
+        if is_member:
+            user_full_name = f"{update.message.reply_to_message.from_user.first_name} {update.message.reply_to_message.from_user.last_name or ''}".strip()
+            team_extra_name = member_info.get('extra_name', '')
+            leader_id = member_info['leader_id']
+            leader_name = None
+            try:
+                leader = await context.bot.get_chat_member(update.effective_chat.id, leader_id)
+                leader_name = f"{leader.user.first_name} {leader.user.last_name if leader.user.last_name else ''}".strip()
+            except Exception as e:
+                print(f"Error: {e}")
+            
+            response = f"User: {user_full_name}\nTeam name: {team_extra_name}\nTeam leader: {leader_name}"
         else:
-            await update.message.reply_text("No message replied to.")
+            response = "This user is not a member of any team."
+        
+        # Send the response
+        await context.bot.send_message(update.effective_chat.id, response)
+    else:
+        await update.message.reply_text("Please reply to a message with the /check command to check membership.")
 
-    except Exception as e:
-        await update.message.reply_text(f"An error occurred: {e}")
 
 
 async def notify_team_members(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -610,7 +615,7 @@ def main():
     application.add_handler(CommandHandler("notify", notify_team_members))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, track_messages))
     # Add command handler for /check command
-    application.add_handler(CommandHandler("check", check_member_status))
+    application.add_handler(CommandHandler("check", check_membership))
     application.run_polling()
 
 if __name__ == '__main__':
