@@ -524,9 +524,10 @@ async def team_list(update: Update, context: ContextTypes.DEFAULT_TYPE):
             response = f"| {extra_name} |:\nLeader: {leader_mention}\n𝐓𝐨𝐭𝐚𝐥 𝐏𝐨𝐢𝐧𝐭𝐬: {total_points}\nMembers:\n"
             response += "\n".join(member_names) if member_names else "No members."
             
-            await update.message.reply_text(response, parse_mode=ParseMode.MARKDOWN)
+            await context.bot.send_message(update.effective_chat.id, response, parse_mode=ParseMode.MARKDOWN)
     except BadRequest as e:
         print(f"Error: {e}")
+
 
 async def list_teams_with_points(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
