@@ -4,11 +4,6 @@ from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.constants import ParseMode
 from telegram.ext import Application, CommandHandler, ContextTypes, CallbackQueryHandler, MessageHandler, CallbackContext, filters
 from database import save_data, load_data
-import logging
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
 
 async def check_membership(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Check if the command is replied to a message
