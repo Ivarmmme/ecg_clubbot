@@ -1,0 +1,21 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "clubbot.py",
+      "use": "@vercel/python"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "clubbot.py"
+    }
+  ],
+  "functions": {
+    "bot": {
+      "runtime": "python3.8",
+      "memory": 128
+    }
+  }
+}
